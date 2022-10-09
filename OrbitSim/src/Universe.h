@@ -26,13 +26,23 @@ private:
 	Body *body;
 	Orbit *orbit;
 	Trail *trail;
+
+	// Body object Helper Functions
+	void ResetOrbits();
+
 	// Time Variables
 	float UniverseTime;
 	float dt;
 	uint16_t fastForward;
 
-	// Universe Renderer and Camera
+	// Universe Rendering
 	Renderer renderer;
+	void TimeDisplay();
+	void fastForwardDisplay();
+	void ButtonDisplay();
+	void StatsOverlay();
+
+	// Universe Camera
 	GLCore::Utils::OrthographicCameraController m_CameraController;
 	
 };

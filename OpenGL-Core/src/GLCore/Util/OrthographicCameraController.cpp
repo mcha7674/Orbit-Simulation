@@ -11,6 +11,8 @@ namespace GLCore::Utils {
 	{
 	}
 
+	
+
 	void OrthographicCameraController::OnUpdate(Timestep ts)
 	{
 		if (Input::IsKeyPressed(KEY_A))
@@ -53,6 +55,7 @@ namespace GLCore::Utils {
 		m_Camera.SetPosition(m_CameraPosition);
 
 		m_CameraTranslationSpeed = m_ZoomLevel;
+
 	}
 
 	void OrthographicCameraController::OnEvent(Event& e)
@@ -60,6 +63,12 @@ namespace GLCore::Utils {
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<MouseScrolledEvent>(GLCORE_BIND_EVENT_FN(OrthographicCameraController::OnMouseScrolled));
 		dispatcher.Dispatch<WindowResizeEvent>(GLCORE_BIND_EVENT_FN(OrthographicCameraController::OnWindowResized));
+	}
+
+	void OrthographicCameraController::ResetCamera()
+	{
+		m_CameraPosition.x = 0.0f;
+		m_CameraPosition.y = 0.0f;
 	}
 
 	bool OrthographicCameraController::OnMouseScrolled(MouseScrolledEvent& e)
@@ -72,6 +81,7 @@ namespace GLCore::Utils {
 
 	bool OrthographicCameraController::OnWindowResized(WindowResizeEvent& e)
 	{
+		//std::cout << "Aspect Ratio In Camera Controller" << std::endl;
 		m_AspectRatio = (float)e.GetWidth() / (float)e.GetHeight();
 		m_Camera.SetProjection(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
 		return false;

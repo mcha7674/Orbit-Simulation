@@ -74,7 +74,7 @@ namespace GLCore {
 		});
 		dispatcher.Dispatch<WindowResizeEvent>([&](WindowResizeEvent& e) {
 			glfwSetWindowSizeLimits(static_cast<GLFWwindow*>(m_Window->GetNativeWindow()), 800, 800, GLFW_DONT_CARE, GLFW_DONT_CARE);
-			return true;
+			return false; // important to set to false so Camera Can dispatch window resize afterwards
 			});
 
 		// Dispatch Events to layers in layer stack

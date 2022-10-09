@@ -79,11 +79,12 @@ namespace GLCore {
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 			data.Width = width;
 			data.Height = height;
-
 			// WindowResize EVent specified in ApplicationEvent.h - only needs width and height
 			WindowResizeEvent event(width, height);
 			// Dispatch event
 			data.EventCallback(event);
+			// Set New ViewPort Dimensions
+			glViewport(0, 0, width, height);
 		});
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)

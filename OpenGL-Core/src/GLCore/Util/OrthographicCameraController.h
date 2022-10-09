@@ -21,7 +21,10 @@ namespace GLCore::Utils {
 
 		float GetZoomLevel() const { return m_ZoomLevel; }
 		void SetZoomLevel(float level) { m_ZoomLevel = level; }
+		void SetAspectRatio(float ratio) { m_AspectRatio = ratio; }
 		float GetAspectRatio() const { return m_AspectRatio; }
+
+		void ResetCamera();
 
 	private:
 		bool OnMouseScrolled(MouseScrolledEvent& e);

@@ -38,6 +38,7 @@ namespace GLCore {
 		ImGuiLayer* m_ImGuiLayer;
 		bool m_Running = true;
 		float m_LastFrameTime = 0.0f;
+		
 
 		LayerStack m_LayerStack;
 	private:
