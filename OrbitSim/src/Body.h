@@ -1,6 +1,6 @@
 #pragma once
 #include "Base_Models/Quad.h"
-#include "GLCore/Util/Transform.h"
+
 
 struct Body: public Quad
 {

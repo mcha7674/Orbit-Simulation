@@ -4,7 +4,7 @@
 #include "VertexArray.h"
 #include "IndexBuffer.h"
 #include "../Util/Shader.h"
-#include "../Util/Transform.h"
+#include "Transform.h"
 
 using namespace GLCore::Utils;
 // ERROR HANDLING MACROS

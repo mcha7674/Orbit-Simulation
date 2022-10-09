@@ -67,3 +67,7 @@ project "OpenGL-Core"
 		defines "GLCORE_RELEASE"
 		runtime "Release"
 		optimize "on"
+
+-- Turn Off pch for a few files
+filter "files:src/GLCore/GLAbstraction/**.cpp"
+    flags {"NoPCH"}
