@@ -69,5 +69,5 @@ project "OpenGL-Core"
 		optimize "on"
 
 -- Turn Off pch for a few files
-filter "files:src/GLCore/GLAbstraction/**.cpp"
+filter "files:GLCore/GLAbstraction/**.cpp"
     flags {"NoPCH"}
