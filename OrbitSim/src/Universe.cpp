@@ -8,7 +8,15 @@ Universe::Universe()
 {
 	UniverseTime = 0.0f;
 	dt = 0.0001;
+
+    // Init the ImGui Viewport
+    viewport = ImGui::GetMainViewport();
+    style = &ImGui::GetStyle();
+    // Universal ImGui UI Styles
+    InitImGuiGlobalStyling();
 }
+
+
 
 Universe::~Universe()
 {
@@ -116,38 +124,57 @@ void Universe::OnUpdate(Timestep ts)
 	UniverseTime += dt;
 }
 
+
+void Universe::ResetOrbits()
+{
+    trail->vertices.clear();
+    orbit->Reset();
+    UniverseTime = 0.0f;
+}
+
+void Universe::InitImGuiGlobalStyling()
+{
+    style->Colors[ImGuiCol_Text] = ImColor(153, 178, 242);
+    style->Colors[ImGuiCol_Border] = ImColor(0, 0, 0);
+    style->Colors[ImGuiCol_Button] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
+    style->Colors[ImGuiCol_ButtonHovered] = ImColor(153.0f, 178.0f, 242.0f,0.2f);
+    style->Colors[ImGuiCol_ButtonActive] = ImColor(153.0f, 178.0f, 242.0f, 0.2f);
+    
+    //bg coloring
+    style->Colors[ImGuiCol_WindowBg] = ImColor(0, 0, 0);
+    //style->Colors[ImGuiCol_FrameBgHovered] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
+    style->Colors[ImGuiCol_FrameBgActive] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
+    style->Colors[ImGuiCol_FrameBg] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
+    
+    // Title bar for window is transparent
+    style->Colors[ImGuiCol_TitleBgActive] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
+    style->Colors[ImGuiCol_TitleBg] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
+    style->Colors[ImGuiCol_TitleBgCollapsed] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+    style->WindowBorderSize = 0.0f;
+}
+
+// Main ImGui Render Function
 void Universe::OnImGuiRender()
 {
-
-    TimeDisplay();
-    StatsOverlay();
-    fastForwardDisplay();
-    ButtonDisplay();
+    ImVec2 work_pos = viewport->Pos;
+    ImVec2 work_size = viewport->Size;
+    TimeDisplay(work_pos, work_size);
+    StatsOverlay(work_pos, work_size);
+    fastForwardDisplay(work_pos, work_size);
+    ButtonDisplay(work_pos, work_size);
     //ImGui::ShowDemoWindow();
 }
 
 
-void Universe::ResetOrbits()
-{
-	trail->vertices.clear();
-	orbit->Reset();
-	UniverseTime = 0.0f;
-}
 
 
-void Universe::TimeDisplay()
+//// CUSTOM IMGUI DISPLAYS ////
+
+void Universe::TimeDisplay(const ImVec2& work_pos, const ImVec2& work_size)
 {
     static bool* p_open;
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-
-    ImGuiStyle& style = ImGui::GetStyle();
-    style.Colors[ImGuiCol_Text] = ImColor(153, 178, 242);
-    style.Colors[ImGuiCol_Border] = ImColor(0, 0, 0);
-    style.Colors[ImGuiCol_WindowBg] = ImColor(0, 0, 0);
-
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImVec2 work_pos = viewport->Pos; // Use work area to avoid menu-bar/task-bar, if any! (0.0,0.0) if no menu/taskbars
-    ImVec2 work_size = viewport->Size;
 
     // Universe Time //
     ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
@@ -155,44 +182,21 @@ void Universe::TimeDisplay()
 	//ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
     if (ImGui::Begin("Time", p_open, window_flags)) {
 
-        style.WindowBorderSize = 0.0f;
         ImGui::SetWindowFontScale(2.0);
         ImGui::Text("Time: %f Years", UniverseTime);
     }
     ImGui::End();
-    // FPS
-    //ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
-    //ImGui::SetNextWindowPos(ImVec2(work_size.x - 15.0f, work_pos.y + 1.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-    //if (ImGui::Begin("FPS", p_open, window_flags)) {
-
-    //    style.WindowBorderSize = 0.0f;
-    //    ImGui::SetWindowFontScale(2.0);
-    //    //ImGui::Text("FPS : %d", (uint8_t)(1.0f / ));
-    //}
-    //ImGui::End();
 }
-//
-void Universe::fastForwardDisplay()
+
+void Universe::fastForwardDisplay(const ImVec2& work_pos, const ImVec2& work_size)
 {
     static bool* p_open;
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 
-    ImGuiStyle& style = ImGui::GetStyle();
-    //style.Colors[ImGuiCol_Text] = ImColor(153, 178, 242);
-    //style.Colors[ImGuiCol_Border] = ImColor(0, 0, 0);
-    //style.Colors[ImGuiCol_WindowBg] = ImColor(0, 0, 0);
-
-	const ImGuiViewport* viewport = ImGui::GetMainViewport();
-	ImVec2 work_pos = viewport->Pos; // Use work area to avoid menu-bar/task-bar, if any! (0.0,0.0) if no menu/taskbars
-	ImVec2 work_size = viewport->Size;
-
 	// Universe Time //
 	ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
-	ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x * 0.5f, work_pos.y + work_size.y - 15.0f), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
-
+	ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x * 0.5f -15.0f, work_pos.y + work_size.y - 15.0f), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
     if (ImGui::Begin("FF", p_open, window_flags)) {
-
-        style.WindowBorderSize = 0.0f;
         ImGui::SetWindowFontScale(1.9);
         // Fast Forward
         static int active = 0;
@@ -210,32 +214,22 @@ void Universe::fastForwardDisplay()
 
 }
 
-void Universe::ButtonDisplay()
+void Universe::ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size)
 {
 
     static bool* p_open;
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-
-    ImGuiStyle& style = ImGui::GetStyle();
-    // For accurate dynamic positioning with resize
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImVec2 work_pos = viewport->Pos; // Use work area to avoid menu-bar/task-bar, if any! (0.0,0.0) if no menu/taskbars
-    ImVec2 work_size = viewport->Size; // will give essentiall window width and height
     // For Top Right Corners - pivot (3rd parameter) allow for center and corner positioning (1.0,0.0) is top right for example
     ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - 15.0f, work_pos.y + 20.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
 	ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     if (ImGui::Begin("BDReset", p_open, window_flags)) {
-        style.WindowBorderSize = 0.0f;
-        ImGui::SetWindowFontScale(1.6);
-		style.Colors[ImGuiCol_Button] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
+        ImGui::SetWindowFontScale(1.8);
         // Reset Trail Button //
         if (ImGui::Button("Reset Trail")) { trail->vertices.clear(); }
 		//ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
         ImGui::Dummy(ImVec2(0.0f, 10.0f));
         // Reset Sim Button //
         if (ImGui::Button("Reset Orbit")) { ResetOrbits(); }
-		
-		
     }
     ImGui::End();
 
@@ -250,17 +244,13 @@ void Universe::ButtonDisplay()
 
 }
 
-void Universe::StatsOverlay()
+void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
 {
     static int corner = 0;
     static bool* p_open;
-    ImGuiIO& io = ImGui::GetIO();
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     if (corner != -1) {
         const float PAD = 15.0f;
-        const ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImVec2 work_pos = viewport->Pos; // Use work area to avoid menu-bar/task-bar, if any!
-        ImVec2 work_size = viewport->Size;
         ImVec2 window_pos, window_pos_pivot;
         // if corner is 1, then window_pos.x = work_pos.x + work_size.x - PAD else it gets work_pos.x + PAD
         window_pos.x = (corner & 1) ? (work_pos.x + work_size.x - PAD) : (work_pos.x + PAD);
@@ -269,18 +259,12 @@ void Universe::StatsOverlay()
         window_pos_pivot.y = (corner & 2) ? 1.0f : 0.0f;
         ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
         window_flags |= ImGuiWindowFlags_NoMove;
-
     }
-    ImGui::SetNextWindowBgAlpha(0.1f); // Transparent background
-    ImGuiStyle& style = ImGui::GetStyle();
-    style.Colors[ImGuiCol_Text] = ImColor(189, 204, 242);
-    //style.Colors[ImGuiCol_Border] = ImColor(0, 0, 0);
-    ImGui::SetNextWindowBgAlpha(0.5f); // Transparent background
+    ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(189, 204, 242, 1));
     if (ImGui::Begin("Body Stats", p_open, window_flags)) {
         // Window Settings
         ImGui::SetWindowFontScale(1.9);
-        style.WindowBorderSize = 0.0f;
-
         // Orbit Stats //
         ImGui::Text("r: %f AU", orbit->r);
         // Delta Toggle //
@@ -319,6 +303,7 @@ void Universe::StatsOverlay()
 
     }
     ImGui::End();
+    ImGui::PopStyleColor();
 
 }
 
