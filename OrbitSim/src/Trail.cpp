@@ -41,12 +41,12 @@ void Trail::UpdateTrail(const float &x,const float &y)
     vertices.push_back(x);
     vertices.push_back(y);
     vertices.push_back(0.0f);
-    vb->UpdateBuffer(&vertices[0], (unsigned int)(vertices.size() * sizeof(vertices[0])));
+    vb->UpdateBuffer(&vertices[0], (unsigned int)(vertices.size() * sizeof(vertices[0])), true);
 }
 
 void Trail::SetBuffers()
 {
-    vb->UpdateBuffer(&vertices[0], (unsigned int)(vertices.size() * sizeof(vertices[0])));    
+    vb->UpdateBuffer(&vertices[0], (unsigned int)(vertices.size() * sizeof(vertices[0])), true);    
 }
 
 //void Trail::SetTrailAlpha(const float &a)

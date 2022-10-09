@@ -14,7 +14,7 @@ VertexBuffer::VertexBuffer(const void* data, unsigned int size, bool isDynamicDr
 	}
 }
 
-void VertexBuffer::UpdateBuffer(const void* data, unsigned int size)
+void VertexBuffer::UpdateBuffer(const void* data, unsigned int size, bool isDynamicDraw)
 {
 	GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW));
 }

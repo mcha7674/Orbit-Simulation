@@ -46,6 +46,8 @@ namespace GLCore {
 
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);
+
+		DeltaTime = 1.0f/60.0f;
 	}
 
 	void Application::PushLayer(Layer* layer)
@@ -94,6 +96,7 @@ namespace GLCore {
 			float time = (float)glfwGetTime();
 			Timestep timestep = time - m_LastFrameTime;
 			m_LastFrameTime = time;
+			DeltaTime = timestep;
 
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate(timestep);

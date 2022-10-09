@@ -27,6 +27,7 @@ namespace GLCore {
 		void PushOverlay(Layer* layer);
 
 		inline Window& GetWindow() { return *m_Window; }
+		inline float GetDeltaTime() { return DeltaTime; }
 
 		inline static Application& Get() { return *s_Instance; }
 	private:
@@ -38,6 +39,7 @@ namespace GLCore {
 		ImGuiLayer* m_ImGuiLayer;
 		bool m_Running = true;
 		float m_LastFrameTime = 0.0f;
+		Timestep DeltaTime;
 		
 
 		LayerStack m_LayerStack;

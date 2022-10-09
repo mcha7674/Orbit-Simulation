@@ -11,7 +11,7 @@ public:
 	VertexBuffer(const void* data, unsigned int size, bool isDynamicDraw = false);
 	~VertexBuffer();
 
-	void UpdateBuffer(const void* data, unsigned int size);
+	void UpdateBuffer(const void* data, unsigned int size, bool isDynamicDraw = false);
 
 	void Bind() const;
 	void UnBind() const;

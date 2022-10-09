@@ -7,8 +7,6 @@
 #include "Trail.h"
 #include <GLCore.h>
 
-
-
 class Universe : public GLCore::Layer
 {
 public:
@@ -22,35 +20,28 @@ public:
 	virtual void OnImGuiRender() override;
 private:
 	Body *Sun;
-	// Moving Body Objects
 	Body *body;
 	Orbit *orbit;
-	Trail *trail;
-
-	// Body object Helper Functions
-	void ResetOrbits();
-
+	Trail* trail;
 	// Time Variables
 	float UniverseTime;
 	float dt;
 	uint16_t fastForward;
-
 	// Universe Rendering
 	Renderer renderer;
-
 	// Universe UI
 	ImGuiStyle *style;
 	const ImGuiViewport* viewport;
-
 	void InitImGuiGlobalStyling();
-
 	void TimeDisplay(const ImVec2 &work_pos, const ImVec2& work_size);
 	void fastForwardDisplay(const ImVec2& work_pos, const ImVec2& work_size);
 	void ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size);
 	void StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size);
-
 	// Universe Camera
 	GLCore::Utils::OrthographicCameraController m_CameraController;
+
+	// Helper Functions
+	void ResetOrbits();
 	
 };
 

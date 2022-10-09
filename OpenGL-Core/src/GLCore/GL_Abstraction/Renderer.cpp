@@ -34,6 +34,17 @@ bool GLLogCall(const char* function, const char* file, int line)
     return true;
 }
 
+void Renderer::DrawCircle(const VertexArray& va, Shader& shader, Transform& transform, float numVertices)
+{
+    shader.use();
+    va.Bind(); // dont need to bind vb since it is attached to vertex array
+    // Calculate the model matrix
+    CALCULATE_MODEL_MATRIX();
+    // set shader uniforms
+    setUniforms(m_model, shader);
+    GLCall(glDrawArrays(GL_TRIANGLE_FAN, 0, numVertices));
+}
+
 void Renderer::DrawRect(const VertexArray& va, const IndexBuffer& ib, Shader& shader, Transform &transform) 
 {
     shader.use();
