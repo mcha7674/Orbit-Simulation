@@ -1,6 +1,5 @@
 #include "glpch.h"
 #include "Renderer.h"
-#include <iostream>
 
 Renderer::Renderer()
 {

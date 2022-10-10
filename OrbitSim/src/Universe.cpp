@@ -3,6 +3,23 @@
 using namespace GLCore;
 using namespace GLCore::Utils;
 
+
+void Universe::InitUniverse()
+{
+    // Init Universe
+    fastForward = 1;
+    Sun = new Body(0, 10.0f, 0.0f, 1.0f);
+    body = new Body(1, 3e-6f, 1.0f, 0.4f);
+    trail = new Trail;
+    orbit = new Orbit(body, body->a, 0.0f, 0.0f, 2 * PI, 2.0f, UniverseTime, dt);
+
+    // Set Object Colors
+    body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
+    trail->setColor(glm::vec4{ 0.5f,0.3f,0.3f,1.0f });
+    Sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
+}
+
+
 Universe::Universe()
 	:m_CameraController((float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight()) // init camera controller with the window aspect ratio
 {
@@ -14,34 +31,34 @@ Universe::Universe()
     style = &ImGui::GetStyle();
     // Universal ImGui UI Styles
     InitImGuiGlobalStyling();
+
+    InitUniverse();
 }
-
-
-
 Universe::~Universe()
 {
 	delete body;
+    delete Sun;
+    delete trail;
+    delete orbit;
 }
 
 void Universe::OnAttach()
 {
 	EnableGLDebugging();
 
-	// gl enable prelims
-	glEnable(GL_BLEND);
+	// gl enable prelims //
+    // Depth
+    glDisable(GL_DEPTH_TEST);
+    // Blending
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	body = new Body(1, 1.0f, 1.0f, 1.0f);
-	fastForward = 1;
-	Sun = new Body(0, 10.0f, 0.0f,1.0f);
-	body = new Body(1, 3e-6f, 1.0f,0.4f);
-	trail = new Trail;
-	orbit = new Orbit(body, body->a, 0.0f, 0.0f, 2*PI, 2.0f, UniverseTime, dt);
-
-	// Set Object Colors
-	body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
-	trail->setColor(glm::vec4{0.5f,0.3f,0.3f,1.0f});
-	Sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
+	glEnable(GL_BLEND);
+    // AntiAliasing //
+    // polygon Antialiasing
+    glEnable(GL_POLYGON_SMOOTH);
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+    // Line Antialiasing
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
 }
 

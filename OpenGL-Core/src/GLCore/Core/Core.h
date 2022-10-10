@@ -1,4 +1,3 @@
-// Mostly from Hazel
 #pragma once
 
 #include <memory>

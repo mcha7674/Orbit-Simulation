@@ -6,7 +6,7 @@
 struct Body: public Circle
 {
     // PARAMETERIZED CONSTRUCTOR
-    Body(const unsigned int id, float m, float a, float radius, unsigned int numSides = 40);
+    Body(const unsigned int id, float m, float a, float radius, unsigned int numSides = 100);
     glm::vec3 UpdateScaleResize(const float& aspectRatio);
     virtual void setColor(float r, float g, float b, float a) override;
 

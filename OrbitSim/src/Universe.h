@@ -41,6 +41,7 @@ private:
 	GLCore::Utils::OrthographicCameraController m_CameraController;
 
 	// Helper Functions
+	void InitUniverse();
 	void ResetOrbits();
 	
 };
