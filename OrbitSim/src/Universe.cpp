@@ -4,20 +4,7 @@ using namespace GLCore;
 using namespace GLCore::Utils;
 
 
-void Universe::InitUniverse()
-{
-    // Init Universe
-    fastForward = 1;
-    Sun = new Body(0, 10.0f, 0.0f, 1.0f);
-    body = new Body(1, 3e-6f, 1.0f, 0.4f);
-    trail = new Trail;
-    orbit = new Orbit(body, body->a, 0.0f, 0.0f, 2 * PI, 2.0f, UniverseTime, dt);
 
-    // Set Object Colors
-    body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
-    trail->setColor(glm::vec4{ 0.5f,0.3f,0.3f,1.0f });
-    Sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
-}
 
 
 Universe::Universe()
@@ -31,7 +18,7 @@ Universe::Universe()
     style = &ImGui::GetStyle();
     // Universal ImGui UI Styles
     InitImGuiGlobalStyling();
-
+    // Initiate The Universe (Objects Atrributes.. etc)
     InitUniverse();
 }
 Universe::~Universe()
@@ -79,6 +66,23 @@ void Universe::OnEvent(Event& event)
 	// orthographic camera Event Dispatching (seperate dispatching)
 	m_CameraController.OnEvent(event);
 	EventDispatcher dispatcher(event);
+    // Pause Menu Space Bar Bind
+    dispatcher.Dispatch<KeyPressedEvent>(
+        [&](KeyPressedEvent &e){
+        if (e.GetKeyCode() == KEY_SPACE)
+        {
+            pauseUniverse = true;
+        }
+        return false; 
+    });
+    dispatcher.Dispatch<KeyReleasedEvent>(
+    [&](KeyReleasedEvent& e) {
+        if (e.GetKeyCode() == KEY_SPACE)
+        {
+            pauseUniverse = false;
+        }
+        return false;
+    });
 	
 }
 
@@ -88,7 +92,7 @@ void Universe::OnUpdate(Timestep ts)
 	Application::Get().GetWindow().Clear();
 	// Key Handling (cam controller update)
 	m_CameraController.OnUpdate(ts);
-	// set view matrix Uniforms for all objects
+	// set view matrix and orthographic matrix product Uniforms for all Bodies and Trails
 	body->Circle_shader->use();
 	body->Circle_shader->SetUniformMatrix4fv("viewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
 	trail->Trail_shader->use();
@@ -96,48 +100,18 @@ void Universe::OnUpdate(Timestep ts)
 	Sun->Circle_shader->use();
 	Sun->Circle_shader->SetUniformMatrix4fv("viewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
 
-	// Transform Body Positions
-	body->body_Transform.setPosition(glm::vec3{cos(UniverseTime),sin(UniverseTime),0.0f});
-	
-	glm::vec3 newpos = glm::vec3(1.0f);
-	newpos.x = orbit->x;
-	newpos.y = orbit->y; // Correct for screen aspect ratio
-	body->body_Transform.setPosition(newpos);
-	// Update Orbit
-	for (uint16_t i = 0; i < fastForward; i++)
-	{
-		orbit->Update(UniverseTime, dt, false);
-		// Update Orbit Trail
-		newpos.x = orbit->x;
-		newpos.y = orbit->y;
-		// Update Time Variable
-		UniverseTime += dt;
-	}
-	trail->UpdateTrail(newpos.x, newpos.y);
+	// Physics Loop //
+    if (!pauseUniverse)
+    {
+        PhysicsLoop();
+        UniverseTime += dt;
+    }
+	// Render Universe //
+    RenderUniverse();
 
-	// Scale Bodies Based on Radius
-	glm::vec3 newScale = glm::vec3(1.0f);
-	newScale.x = 0.5f;
-	newScale.y = 0.5f;
-	Sun->body_Transform.setScale(newScale);
-	newScale.x = 0.1f;
-	newScale.y = 0.1f;
-	body->body_Transform.setScale(newScale);
 	
-
-	// Render Objects
-																 //- divide trail by size/3 since GL_LINE_STRIP count is num of vertices
-	renderer.DrawLineStrip(trail->va, *(trail->Trail_shader), trail->trail_Transform, (unsigned int)trail->vertices.size() / 3); // trail
-	renderer.DrawCircle(body->va, *(body->Circle_shader), body->body_Transform, body->NumberOfVertices);
-	renderer.DrawCircle(Sun->va, *(Sun->Circle_shader), Sun->body_Transform, Sun->NumberOfVertices);
-	
-	UniverseTime += dt;
 }
 
-
-
-
-// Main ImGui Render Function
 void Universe::OnImGuiRender()
 {
     ImVec2 work_pos = viewport->Pos;
@@ -149,12 +123,73 @@ void Universe::OnImGuiRender()
     //ImGui::ShowDemoWindow();
 }
 
-// HELPER FUNCTIONS
+
+// HELPER UNIVERSE FUNCTIONS
+void Universe::InitUniverse()
+{
+    // Init Universe
+    fastForward = 1;
+    Sun = new Body(0, 10.0f, 0.0f, 1.0f);
+    body = new Body(1, 3e-6f, 1.0f, 0.4f);
+    trail = new Trail;
+    orbit = new Orbit(body, body->a, 0.0f, 0.0f, 2 * PI, 2.0f, UniverseTime, dt);
+
+    // Set Object Colors
+    body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
+    trail->setColor(glm::vec4{ 0.5f,0.3f,0.3f,1.0f });
+    Sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
+
+    pauseUniverse = false;
+}
+
+void Universe::PhysicsLoop()
+{
+    // Transform Body Positions	
+    glm::vec3 newpos = glm::vec3(1.0f);
+    newpos.x = orbit->x;
+    newpos.y = orbit->y; // Correct for screen aspect ratio
+    body->body_Transform.setPosition(newpos);
+    // Update Orbit
+    for (uint16_t i = 0; i < fastForward; i++)
+    {
+        orbit->Update(UniverseTime, dt, false);
+        // Update Orbit Trail
+        newpos.x = orbit->x;
+        newpos.y = orbit->y;
+        // Update Time Variable
+        UniverseTime += dt;
+    }
+    trail->UpdateTrail(newpos.x, newpos.y);
+
+    // Scale Bodies To see them better.
+    glm::vec3 newScale = glm::vec3(1.0f);
+    newScale.x = 0.5f;
+    newScale.y = 0.5f;
+    Sun->body_Transform.setScale(newScale);
+    newScale.x = 0.1f;
+    newScale.y = 0.1f;
+    body->body_Transform.setScale(newScale);
+}
+
 void Universe::ResetOrbits()
 {
     trail->vertices.clear();
     orbit->Reset();
     UniverseTime = 0.0f;
+}
+
+void  Universe::PauseUniverse()
+{
+
+}
+
+void Universe::RenderUniverse()
+{
+    // Trail																 
+    renderer.DrawLineStrip(trail->va, *(trail->Trail_shader), trail->trail_Transform, (unsigned int)trail->vertices.size() / 3); //- divide trail by size/3 since GL_LINE_STRIP count is num of vertices
+    // Bodies
+    renderer.DrawCircle(body->va, *(body->Circle_shader), body->body_Transform, body->NumberOfVertices);
+    renderer.DrawCircle(Sun->va, *(Sun->Circle_shader), Sun->body_Transform, Sun->NumberOfVertices);
 }
 
 

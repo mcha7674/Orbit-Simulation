@@ -23,12 +23,24 @@ private:
 	Body *body;
 	Orbit *orbit;
 	Trail* trail;
+
+	// Universe Helper Functions
+	void InitUniverse();
+	void PhysicsLoop();
+	void PauseUniverse();
+	void ResetOrbits();
+
+	// Pause Universe Activation Bool
+	bool pauseUniverse;
+
+
 	// Time Variables
 	float UniverseTime;
 	float dt;
 	uint16_t fastForward;
 	// Universe Rendering
 	Renderer renderer;
+	void RenderUniverse();
 	// Universe UI
 	ImGuiStyle *style;
 	const ImGuiViewport* viewport;
@@ -40,9 +52,7 @@ private:
 	// Universe Camera
 	GLCore::Utils::OrthographicCameraController m_CameraController;
 
-	// Helper Functions
-	void InitUniverse();
-	void ResetOrbits();
+	
 	
 };
 

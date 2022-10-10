@@ -85,6 +85,8 @@ namespace GLCore {
 			data.EventCallback(event);
 			// Set New ViewPort Dimensions
 			glViewport(0, 0, width, height);
+			// Set Min/MaxSize Dimensions
+			glfwSetWindowSizeLimits(window, 800, 800, GLFW_DONT_CARE, GLFW_DONT_CARE);
 		});
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)

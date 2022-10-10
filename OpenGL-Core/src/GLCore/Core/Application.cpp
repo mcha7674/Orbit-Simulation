@@ -61,29 +61,26 @@ namespace GLCore {
 
 	void Application::OnEvent(Event& e)
 	{
+		// APPLICATION SPECIFIC EVENTS
 		EventDispatcher dispatcher(e);
 		// IF dispatcher sees windowCloseEvent, then it will dispatch it to OnWindowClose Function
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
-		// Add escape Button Exits
+		// Add Escape Button Binding for Window Close 
 		dispatcher.Dispatch<KeyPressedEvent>([&](KeyPressedEvent &e){
 			if (e.GetKeyCode() == GLFW_KEY_ESCAPE)
 			{
-				m_Running = false;
+				m_Running = false; // Stop Simulation Loop
 				std::cout << "Escape Key Pressed..." << "Quiting..." << '\n';
 			}
-			return true; // return true so that it does not get propagated to our layers
+			return false; // return false so the KeyPressed Event type gets progagated to other layers
 		});
-		dispatcher.Dispatch<WindowResizeEvent>([&](WindowResizeEvent& e) {
-			glfwSetWindowSizeLimits(static_cast<GLFWwindow*>(m_Window->GetNativeWindow()), 800, 800, GLFW_DONT_CARE, GLFW_DONT_CARE);
-			return false; // important to set to false so Camera Can dispatch window resize afterwards
-			});
-
+		
 		// Dispatch Events to layers in layer stack
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
 		{
-			// decrement and dereference iterator pointer that points to the OnEvent() for each Layer in stack
+			// decrement and dereference iterator pointer that points to the OnEvent() for each Layer in stack (CALLING ONEVENT FOR EACH LAYER)
 			(*--it)->OnEvent(e);
-			if (e.Handled) // If layer marked it as handled (The event pertained to it) Then Stop the propogation
+			if (e.Handled) // If layer marked it as handled (The event pertained to it) Then Stop the propogation (Applies to event type)
 				break;
 		}
 	}
