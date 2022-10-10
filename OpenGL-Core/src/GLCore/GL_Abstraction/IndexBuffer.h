@@ -1,5 +1,4 @@
 #pragma once
-
 #define ib_GLtype GL_UNSIGNED_INT
 
 class IndexBuffer

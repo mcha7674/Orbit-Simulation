@@ -1,3 +1,4 @@
+#include "glpch.h"
 #include "VertexBuffer.h"
 #include "Renderer.h"
 
