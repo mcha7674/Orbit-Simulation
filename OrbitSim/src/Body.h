@@ -9,7 +9,9 @@ struct Body: public Circle
     Body(const unsigned int id, float m, float a, float radius, unsigned int numSides = 100);
     glm::vec3 UpdateScaleResize(const float& aspectRatio);
     virtual void setColor(float r, float g, float b, float a) override;
+    void setAlpha(const float alphaVal);
 
+    glm::vec4 circleColor;
     Transform body_Transform;
 
     uint32_t ID;

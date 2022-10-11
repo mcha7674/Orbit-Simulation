@@ -121,23 +121,22 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
         f = sqrt(fx * fx + fy * fy);
     }
     
-    //std::cout << "Is Aphelion: " << std::boolalpha << isAphelion(v0, v) << std::endl;
-    //std::cout << "Is Perihelion: " << std::boolalpha << isPerihelion(v0, v) << std::endl;
+   
     isAphelion(v0, v);
     isPerihelion(v0, v);
-    //std::cout << "condition: " << (aphelionReached && perihelionReached && !finishedPeriod) << std::endl;
     if (aphelionReached && perihelionReached && !finishedHalfPeriod) { 
         period = 2 * t;
-        //std::cout << "Period Calculated to be: " << period << std::endl;
         finishedHalfPeriod = true;
     }
-    if (t >= period) { 
+    if (t >= period && !finishedPeriod) { 
         finishedPeriod = true; 
-        //std::cout << "finishedPeriod Var set to True"  << std::endl;
+        itersTo1Period = iterations;
     }
-   
+    if (iterations == itersTo1Period) { 
+        periodCycles++; 
+        iterations = 0;
+    }
     iterations++;
-    //std::cout << "period vs t = " << period << " | "<<t<< std::endl;
 }
 
 float Orbit::PartialStep(float& f, float df, float scale)

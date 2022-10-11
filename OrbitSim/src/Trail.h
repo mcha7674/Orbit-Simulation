@@ -13,9 +13,11 @@ public:
     ~Trail();
 
     void setColor(const glm::vec4& color);
-    void UpdateTrail(const float& x, const float& y,const bool &isPeriodComplete);
+    void setAlpha(const float alphaVal);
+    void UpdateTrail(const float& x, const float& y,const unsigned int &isPeriodComplete);
     void ResetTrail(const float x, const float y);
-    bool addNewVertices = true;
+    
+    glm::vec4 trailColor{ 1.0f,1.0f,1.0f,1.0f };
 
     /* VAO VB and VB Layout */
     VertexArray va; // (GenVertexArray)

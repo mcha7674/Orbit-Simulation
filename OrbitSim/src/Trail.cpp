@@ -29,28 +29,35 @@ Trail::~Trail()
 
 void Trail::setColor(const glm::vec4 &color)
 {
+    trailColor = color;
     Trail_shader->use();
     Trail_shader->SetUniformVec4fv("trailColor", color);
 }
 
-void Trail::UpdateTrail(const float &x,const float &y, const bool &isPeriodComplete)
+void Trail::setAlpha(const float alphaVal)
+{
+    trailColor.w = alphaVal;
+    Trail_shader->use();
+    Trail_shader->SetUniformVec4fv("trailColor", trailColor);
+}
+
+void Trail::UpdateTrail(const float &x,const float &y, const unsigned int &periodCycles)
 {
     // Update vertices Only while orbit trail has not completed an Orbit period.
-    if (!isPeriodComplete) {
-        // Update vertices array
-        if (addNewVertices)
-        {
-            vertices.push_back(x);
-            vertices.push_back(y);
-            vertices.push_back(0.0f);
-        }
+    if (periodCycles == 0) {
+        
+        vertices.push_back(x);
+        vertices.push_back(y);
+        vertices.push_back(0.0f);
+      
         vb->UpdateBuffer(&vertices[0], (unsigned int)(vertices.size() * sizeof(float)), true);
+        //std::cout << "dasf" << std::endl;
     }
-    else {
-        addNewVertices = false;
-    }
+    
 
 }
+
+
 
 
 void Trail::ResetTrail(const float x, const float y)

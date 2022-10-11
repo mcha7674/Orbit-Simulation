@@ -57,7 +57,10 @@ public:
     bool finishedPeriod;
     bool finishedHalfPeriod;
     
+    unsigned int periodCycles = 0;
+    
     unsigned int iterations = 0;
+    unsigned int itersTo1Period = MAXUINT;
 
 public:
     // PARAMETERIZED CONSTRUCTOR

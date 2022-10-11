@@ -4,7 +4,7 @@ using namespace GLCore;
 using namespace GLCore::Utils;
 
 Universe::Universe()
-	:m_CameraController((float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight()) // init camera controller with the window aspect ratio
+	:m_CameraController((float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), false, 1.0f) // init camera controller with the window aspect ratio
 {
 	UniverseTime = 0.0f;
 	dt = 0.0001;
@@ -43,6 +43,8 @@ void Universe::OnAttach()
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
+    
+
 }
 
 void Universe::OnDetach()
@@ -67,25 +69,69 @@ void Universe::OnEvent(Event& event)
         [&](KeyPressedEvent &e){
         if (e.GetKeyCode() == KEY_SPACE)
         {
-            pauseUniverse = true;
-        }
-        return false; 
-    });
-    dispatcher.Dispatch<KeyReleasedEvent>(
-    [&](KeyReleasedEvent& e) {
-        if (e.GetKeyCode() == KEY_SPACE)
-        {
-            pauseUniverse = false;
+            if (pauseUniverse) { pauseUniverse = false; }
+            else if (!pauseUniverse) { pauseUniverse = true; }
+            
         }
         return false;
     });
+    
+    // Arrow Key Bind With Fast Forward
+    dispatcher.Dispatch<KeyPressedEvent>(
+    [&](KeyPressedEvent& e) {
+        if (e.GetKeyCode() == KEY_LEFT)
+        {
+            switch (fastForward)
+            {
+            case 1: 
+                fastForward = 1;
+                break;
+            case 10:
+                fastForward = 1;
+                break;
+            case 100:
+                fastForward = 10;
+                break;
+            case 500:
+                fastForward = 100;
+                break;
+
+            } 
+        }
+        else if (e.GetKeyCode() == KEY_RIGHT)
+        {
+            switch (fastForward)
+            {
+            case 1:
+                fastForward = 10;
+                break;
+            case 10:
+                fastForward = 100;
+                break;
+            case 100:
+                fastForward = 500;
+                break;
+            case 500:
+                fastForward = 500;
+                break;
+            }
+
+        }
+        return false;
+     });
 	
 }
 
 void Universe::OnUpdate(Timestep ts)
 {     
-	// Window Clearing
-	Application::Get().GetWindow().Clear();
+	// Window Clearing and pause functions
+    if (!pauseUniverse) { 
+        Application::Get().GetWindow().Clear();
+        Sun->setAlpha(1.0f);
+        body->setAlpha(1.0f);
+        trail->setAlpha(0.7f);
+    } else { PauseUniverse(); }
+
 	// Key Handling (cam controller update)
 	m_CameraController.OnUpdate(ts);
 	// set view matrix and orthographic matrix product Uniforms for all Bodies and Trails
@@ -95,7 +141,7 @@ void Universe::OnUpdate(Timestep ts)
 	trail->Trail_shader->SetUniformMatrix4fv("viewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
 	Sun->Circle_shader->use();
 	Sun->Circle_shader->SetUniformMatrix4fv("viewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
-
+    
 	// Physics Loop //
     if (!pauseUniverse)
     {
@@ -114,6 +160,7 @@ void Universe::OnImGuiRender()
     StatsOverlay(work_pos, work_size);
     fastForwardDisplay(work_pos, work_size);
     ButtonDisplay(work_pos, work_size);
+    if (pauseUniverse) { PauseMenu(work_pos, work_size); }
     //ImGui::ShowDemoWindow();
 }
 //////////////////////////////////////////////////////////////////////////////////
@@ -130,7 +177,7 @@ void Universe::InitUniverse()
 
     // Set Object Colors
     body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
-    trail->setColor(glm::vec4{ 0.5f,0.4f,0.4f,0.6f});
+    trail->setColor(glm::vec4{ 0.5f,0.4f,0.4f,0.7f});
     Sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
 
     pauseUniverse = false;
@@ -154,16 +201,17 @@ void Universe::PhysicsLoop()
         // Update Time Variable
         UniverseTime += dt;
         // update Trail
-        trail->UpdateTrail(newpos.x, newpos.y, orbit->finishedPeriod);
+        trail->UpdateTrail(newpos.x, newpos.y, orbit->periodCycles);
+        
     }
 
     // Scale Bodies To see them better.
     glm::vec3 newScale = glm::vec3(1.0f);
-    newScale.x = 0.5f;
-    newScale.y = 0.5f;
+    newScale.x = 0.2f;
+    newScale.y = 0.2f;
     Sun->body_Transform.setScale(newScale);
-    newScale.x = 0.1f;
-    newScale.y = 0.1f;
+    newScale.x = 0.05f;
+    newScale.y = 0.05f;
     body->body_Transform.setScale(newScale);
 }
 
@@ -178,7 +226,10 @@ void Universe::ResetOrbits()
 
 void  Universe::PauseUniverse()
 {
-
+    Application::Get().GetWindow().Clear(10.0f / 255.0f, 10.0f / 255.0f, 10.0f / 255.0f, 1.0f);
+    Sun->setAlpha(0.2f);
+    body->setAlpha(0.2f);
+    trail->setAlpha(0.1f);
 }
 
 void Universe::RenderUniverse()
@@ -226,7 +277,7 @@ void Universe::TimeDisplay(const ImVec2& work_pos, const ImVec2& work_size)
 	//ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
     if (ImGui::Begin("Time", p_open, window_flags)) {
 
-        ImGui::SetWindowFontScale(2.0f);
+        ImGui::SetWindowFontScale(1.5f);
         ImGui::Text("Time: %f Years", UniverseTime);
     }
     ImGui::End();
@@ -234,7 +285,7 @@ void Universe::TimeDisplay(const ImVec2& work_pos, const ImVec2& work_size)
     ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - 15.0f, work_pos.y + 1.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
     if (ImGui::Begin("FPS", p_open, window_flags)) {
-        ImGui::SetWindowFontScale(2.0);
+        ImGui::SetWindowFontScale(1.5f);
         ImGui::Text("FPS : %d", (uint8_t)(1.0f / Application::Get().GetDeltaTime()));
     }
     ImGui::End();
@@ -247,10 +298,10 @@ void Universe::fastForwardDisplay(const ImVec2& work_pos, const ImVec2& work_siz
 
 	// Universe Time //
 	ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
-	ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x * 0.5f -15.0f, work_pos.y + work_size.y - 15.0f), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
+	ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x * 0.5f, work_pos.y + 25.0f), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(20, 20, 100, 1));
     if (ImGui::Begin("FF", p_open, window_flags)) {
-        ImGui::SetWindowFontScale(1.9f);
+        ImGui::SetWindowFontScale(1.2f);
         // Fast Forward
         static int active = 0;
         if (ImGui::RadioButton("x1", &active, 0)) { fastForward = 1; }
@@ -268,6 +319,8 @@ void Universe::fastForwardDisplay(const ImVec2& work_pos, const ImVec2& work_siz
 
 }
 
+
+
 void Universe::ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size)
 {
 
@@ -277,7 +330,7 @@ void Universe::ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size)
     ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - 15.0f, work_pos.y + 60.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
 	ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     if (ImGui::Begin("BDReset", p_open, window_flags)) {
-        ImGui::SetWindowFontScale(1.8f);
+        ImGui::SetWindowFontScale(1.5f);
         // Reset Trail Button //
         if (ImGui::Button("Reset Trail")) { trail->ResetTrail(orbit->x0, orbit->y0); }
 		//ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
@@ -291,7 +344,7 @@ void Universe::ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size)
     ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     if (ImGui::Begin("CenterCam", p_open, window_flags))
     {
-        ImGui::SetWindowFontScale(1.6f);
+        ImGui::SetWindowFontScale(1.5f);
         if (ImGui::Button("Center Cam")) { m_CameraController.ResetCamera(); }
     }
     ImGui::End();
@@ -318,7 +371,7 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(189, 204, 242, 1));
     if (ImGui::Begin("Body Stats", p_open, window_flags)) {
         // Window Settings
-        ImGui::SetWindowFontScale(1.9f);
+        ImGui::SetWindowFontScale(1.5f);
         // Orbit Stats //
         ImGui::Text("r: %f AU", orbit->r);
         // Delta Toggle //
@@ -359,6 +412,23 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
     ImGui::End();
     ImGui::PopStyleColor();
 
+}
+
+void Universe::PauseMenu(const ImVec2& work_pos, const ImVec2& work_size)
+{
+    static bool* p_open;
+    static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+
+    // Universe Time //
+    ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
+    ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
+    //ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
+    if (ImGui::Begin("Paused", p_open, window_flags)) {
+        ImGui::SetWindowFontScale(4.0f);
+        ImGui::Text("PAUSED", UniverseTime);
+    }
+    ImGui::End();
+    
 }
 
 

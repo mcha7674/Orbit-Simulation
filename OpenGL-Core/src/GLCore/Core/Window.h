@@ -46,7 +46,7 @@ namespace GLCore {
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 		virtual void SetVSync(bool enabled) = 0;
 		virtual bool IsVSync() const = 0;
-		virtual void Clear() const = 0;
+		virtual void Clear(float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 1.0f) const = 0;
 
 		virtual void* GetNativeWindow() const = 0;
 

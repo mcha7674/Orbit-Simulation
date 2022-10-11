@@ -22,7 +22,7 @@ namespace GLCore {
 		inline void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
 		void SetVSync(bool enabled) override;
 		bool IsVSync() const override;
-		void Clear() const override;
+		void Clear(float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 1.0f) const override;
 
 		inline virtual void* GetNativeWindow() const { return m_Window; }
 	private:

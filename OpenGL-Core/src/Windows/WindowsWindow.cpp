@@ -197,9 +197,9 @@ namespace GLCore {
 	}
 
 	// Clear Color Buffer Bit
-	void WindowsWindow::Clear() const
+	void WindowsWindow::Clear(float r, float g, float b, float a) const
 	{
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(r, g, b, a);
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 

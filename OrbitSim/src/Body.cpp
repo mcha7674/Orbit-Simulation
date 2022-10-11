@@ -29,8 +29,16 @@ glm::vec3 Body::UpdateScaleResize(const float& aspectRatio)
 
 void Body::setColor(float r, float g, float b, float a)
 {
+	circleColor = glm::vec4(r, g, b, a);
 	Circle_shader->use();
-	Circle_shader->SetUniformVec4fv("u_Color", glm::vec4{r,g,b,a});
+	Circle_shader->SetUniformVec4fv("u_Color", circleColor);
+}
+
+void Body::setAlpha(const float alphaVal)
+{
+	circleColor.w = alphaVal;
+	Circle_shader->use();
+	Circle_shader->SetUniformVec4fv("u_Color", circleColor);
 }
 
 //void Body::setColor(float r, float g, float b, float a)
