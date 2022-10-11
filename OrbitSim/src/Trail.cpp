@@ -9,7 +9,7 @@ Trail::Trail()
     );
     // INIT VBO and IBO
     // Vertex Budder initiated with Dynamic Draw (Indicated by the true final arg boolean)
-    vb = new VertexBuffer(NULL, (unsigned int)(vertices.size() * sizeof(vertices[0])), true); // init vertex buffer (Gen, Bind, Data Implement)
+    vb = new VertexBuffer(NULL, (unsigned int)(vertices.size() * sizeof(float)), true); // init vertex buffer (Gen, Bind, Data Implement)
     // Create layout
     layout.Push<float>(3); // 3 floats per vertex for position
     va.AddBuffer((*vb), layout);
@@ -33,24 +33,28 @@ void Trail::setColor(const glm::vec4 &color)
     Trail_shader->SetUniformVec4fv("trailColor", color);
 }
 
-
-void Trail::UpdateTrail(const float &x,const float &y)
+void Trail::UpdateTrail(const float &x,const float &y, const bool &isPeriodComplete)
 {
+    // Update vertices Only while orbit trail has not completed an Orbit period.
+    if (!isPeriodComplete) {
+        // Update vertices array
+        if (addNewVertices)
+        {
+            vertices.push_back(x);
+            vertices.push_back(y);
+            vertices.push_back(0.0f);
+        }
+        vb->UpdateBuffer(&vertices[0], (unsigned int)(vertices.size() * sizeof(float)), true);
+    }
+    else {
+        addNewVertices = false;
+    }
 
-    // Update vertices array
-    vertices.push_back(x);
-    vertices.push_back(y);
-    vertices.push_back(0.0f);
-    vb->UpdateBuffer(&vertices[0], (unsigned int)(vertices.size() * sizeof(vertices[0])), true);
 }
 
-void Trail::SetBuffers()
-{
-    vb->UpdateBuffer(&vertices[0], (unsigned int)(vertices.size() * sizeof(vertices[0])), true);    
-}
 
-//void Trail::SetTrailAlpha(const float &a)
-//{
-//    Trail_shader->use();
-//    Trail_shader->SetUniform1f("trailAlpha", a);
-//}
+void Trail::ResetTrail(const float x, const float y)
+{
+    vertices.clear();
+    UpdateTrail(x, y, false);
+}

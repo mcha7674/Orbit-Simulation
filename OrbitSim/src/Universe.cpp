@@ -3,10 +3,6 @@
 using namespace GLCore;
 using namespace GLCore::Utils;
 
-
-
-
-
 Universe::Universe()
 	:m_CameraController((float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight()) // init camera controller with the window aspect ratio
 {
@@ -108,8 +104,6 @@ void Universe::OnUpdate(Timestep ts)
     }
 	// Render Universe //
     RenderUniverse();
-
-	
 }
 
 void Universe::OnImGuiRender()
@@ -122,7 +116,7 @@ void Universe::OnImGuiRender()
     ButtonDisplay(work_pos, work_size);
     //ImGui::ShowDemoWindow();
 }
-
+//////////////////////////////////////////////////////////////////////////////////
 
 // HELPER UNIVERSE FUNCTIONS
 void Universe::InitUniverse()
@@ -136,7 +130,7 @@ void Universe::InitUniverse()
 
     // Set Object Colors
     body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
-    trail->setColor(glm::vec4{ 0.5f,0.3f,0.3f,1.0f });
+    trail->setColor(glm::vec4{ 0.5f,0.4f,0.4f,0.6f});
     Sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
 
     pauseUniverse = false;
@@ -149,6 +143,7 @@ void Universe::PhysicsLoop()
     newpos.x = orbit->x;
     newpos.y = orbit->y; // Correct for screen aspect ratio
     body->body_Transform.setPosition(newpos);
+
     // Update Orbit
     for (uint16_t i = 0; i < fastForward; i++)
     {
@@ -158,8 +153,9 @@ void Universe::PhysicsLoop()
         newpos.y = orbit->y;
         // Update Time Variable
         UniverseTime += dt;
+        // update Trail
+        trail->UpdateTrail(newpos.x, newpos.y, orbit->finishedPeriod);
     }
-    trail->UpdateTrail(newpos.x, newpos.y);
 
     // Scale Bodies To see them better.
     glm::vec3 newScale = glm::vec3(1.0f);
@@ -173,7 +169,9 @@ void Universe::PhysicsLoop()
 
 void Universe::ResetOrbits()
 {
-    trail->vertices.clear();
+    /// Reset Trail
+
+    trail->ResetTrail(orbit->x0, orbit->y0);
     orbit->Reset();
     UniverseTime = 0.0f;
 }
@@ -192,7 +190,8 @@ void Universe::RenderUniverse()
     renderer.DrawCircle(Sun->va, *(Sun->Circle_shader), Sun->body_Transform, Sun->NumberOfVertices);
 }
 
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 
 //// CUSTOM IMGUI DISPLAYS ////
 void Universe::InitImGuiGlobalStyling()
 {
@@ -280,7 +279,7 @@ void Universe::ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size)
     if (ImGui::Begin("BDReset", p_open, window_flags)) {
         ImGui::SetWindowFontScale(1.8f);
         // Reset Trail Button //
-        if (ImGui::Button("Reset Trail")) { trail->vertices.clear(); }
+        if (ImGui::Button("Reset Trail")) { trail->ResetTrail(orbit->x0, orbit->y0); }
 		//ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
         ImGui::Dummy(ImVec2(0.0f, 10.0f));
         // Reset Sim Button //

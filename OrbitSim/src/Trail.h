@@ -2,17 +2,20 @@
 
 #include <GLAbstraction.h>
 #include <GLCoreUtils.h>
-#include <vector>
+#include <queue>
 
 
-struct Trail
+class Trail
 {
-
+public:
     Shader* Trail_shader;
     Trail();
     ~Trail();
 
-    void setColor(const glm::vec4 &color);
+    void setColor(const glm::vec4& color);
+    void UpdateTrail(const float& x, const float& y,const bool &isPeriodComplete);
+    void ResetTrail(const float x, const float y);
+    bool addNewVertices = true;
 
     /* VAO VB and VB Layout */
     VertexArray va; // (GenVertexArray)
@@ -24,8 +27,11 @@ struct Trail
 
     // Store Vertices
     std::vector <float> vertices;
-    void UpdateTrail(const float &x, const float& y);
-    void SetBuffers();
-    //void SetTrailAlpha(const float &a = 1.0f);
+
+private:
+    // trail trimming Time function
+    float T();
+    
+
 };
 

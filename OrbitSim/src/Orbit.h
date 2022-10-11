@@ -50,11 +50,14 @@ public:
     // Statistics
     float aphelion;   // max radius
     float perihelion; // min radius
+    bool aphelionReached;
+    bool perihelionReached;
 
     float period;     // period of the orbit
     bool finishedPeriod;
-    // Orbit Pos Cache
-    //std::vector <std::pair<float, float> > posCache;
+    bool finishedHalfPeriod;
+    
+    unsigned int iterations = 0;
 
 public:
     // PARAMETERIZED CONSTRUCTOR
@@ -66,10 +69,10 @@ public:
 
     bool isAphelion(float v0, float v);
     bool isPerihelion(float v0, float v);
-
+    inline bool isPeriodComplete() { return finishedPeriod; };
 
 private:
-    unsigned int iterations = 0;
+    
 
     float PartialStep(float& f, float df, float scale);
     

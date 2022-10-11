@@ -21,7 +21,11 @@ Orbit::Orbit(Body *body, float initx, float inity, float initvx, float initvy, f
     // calculate Theoretical Statistics (period, aphelion, perihelion)
     aphelion = NULL;
     perihelion = NULL;
-    period = NULL;
+    aphelionReached = false;
+    perihelionReached = false;
+    period = FLT_MAX;
+    finishedPeriod = false;
+    finishedHalfPeriod = false;
 
     std::cout << "ORBIT INITIALIZED" << std::endl;
 }
@@ -117,9 +121,23 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
         f = sqrt(fx * fx + fy * fy);
     }
     
-
+    //std::cout << "Is Aphelion: " << std::boolalpha << isAphelion(v0, v) << std::endl;
+    //std::cout << "Is Perihelion: " << std::boolalpha << isPerihelion(v0, v) << std::endl;
+    isAphelion(v0, v);
+    isPerihelion(v0, v);
+    //std::cout << "condition: " << (aphelionReached && perihelionReached && !finishedPeriod) << std::endl;
+    if (aphelionReached && perihelionReached && !finishedHalfPeriod) { 
+        period = 2 * t;
+        //std::cout << "Period Calculated to be: " << period << std::endl;
+        finishedHalfPeriod = true;
+    }
+    if (t >= period) { 
+        finishedPeriod = true; 
+        //std::cout << "finishedPeriod Var set to True"  << std::endl;
+    }
    
     iterations++;
+    //std::cout << "period vs t = " << period << " | "<<t<< std::endl;
 }
 
 float Orbit::PartialStep(float& f, float df, float scale)
@@ -136,6 +154,11 @@ void Orbit::Reset()
     vx = vx0;
     vy = vy0;
     t = 0.0f;
+    finishedHalfPeriod = false;
+    finishedPeriod = false;
+    aphelionReached = false;
+    perihelionReached = false;
+    period = FLT_MAX;
     
     // initialize magnitudes:
     r = sqrt(x * x + y * y);     // magnitude of initial position
@@ -146,7 +169,7 @@ void Orbit::Reset()
     fy = (G_M * body->mass * y) / pow(r, B + 1.0f);
     f = sqrt(fx * fx + fy * fy);
 
-    // calculate Theoretical Statistics (period, aphelion, perihelion)
+    
 
     std::cout << "ORBIT RESET" << std::endl;
 }
@@ -156,6 +179,7 @@ bool Orbit::isAphelion(float v0, float v)
 {
     if ((v - v0) > 0)
     {
+        aphelionReached = true;
         return true;
     }
     return false;
@@ -165,6 +189,7 @@ bool Orbit::isPerihelion(float v0, float v)
 {
     if ((v - v0) < 0)
     {
+        perihelionReached = true;
         return true;
     }
     return false;
