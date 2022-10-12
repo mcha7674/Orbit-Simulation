@@ -1,8 +1,7 @@
 #pragma once
+#include "glpch.h"
+#include "Renderer.h" //gives us va, shader, ib, and openGL funcs through glad.
 
-#include "..\GL_Abstraction\Renderer.h" //gives us va, shader, ib, and openGL funcs through glad.
-#include <stb_image.h>
-#include <string>
 
 class Texture
 {
