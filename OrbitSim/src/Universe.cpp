@@ -453,13 +453,6 @@ void Universe::PauseMenu(const ImVec2& work_pos, const ImVec2& work_size)
     }
     ImGui::End();
 
-    ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
-    ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) *0.5, (work_pos.y + work_size.y * 0.5) + 20.0f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-    if (ImGui::Begin("Paused", p_open, window_flags)) {
-        ImGui::SetWindowFontScale(4.0f);
-        ImGui::Button("PAUSED");
-    }
-    ImGui::End();
     
 }
 
