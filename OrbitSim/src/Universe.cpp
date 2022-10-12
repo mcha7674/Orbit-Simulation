@@ -3,6 +3,8 @@
 using namespace GLCore;
 using namespace GLCore::Utils;
 
+static int fastForwardActive = 0;
+
 Universe::Universe()
 	:m_CameraController((float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), false, 1.0f) // init camera controller with the window aspect ratio
 {
@@ -69,55 +71,75 @@ void Universe::OnEvent(Event& event)
         [&](KeyPressedEvent &e){
         if (e.GetKeyCode() == KEY_SPACE)
         {
+            if (e.GetRepeatCount() >= 1) { pauseUniverse = false; }
             if (pauseUniverse) { pauseUniverse = false; }
             else if (!pauseUniverse) { pauseUniverse = true; }
             
         }
         return false;
     });
+   
     
     // Arrow Key Bind With Fast Forward
     dispatcher.Dispatch<KeyPressedEvent>(
     [&](KeyPressedEvent& e) {
-        if (e.GetKeyCode() == KEY_LEFT)
+        if (!statOverlayFocused)
         {
-            switch (fastForward)
+            if (e.GetKeyCode() == KEY_LEFT)
             {
-            case 1: 
-                fastForward = 1;
-                break;
-            case 10:
-                fastForward = 1;
-                break;
-            case 100:
-                fastForward = 10;
-                break;
-            case 500:
-                fastForward = 100;
-                break;
+                switch (fastForward)
+                {
+                case 1:
+                    fastForward = 1;
+                    fastForwardActive = 0;
+                    break;
+                case 10:
+                    fastForward = 1;
+                    fastForwardActive = 0;
+                    break;
+                case 50:
+                    fastForward = 10;
+                    fastForwardActive = 1;
+                    break;
+                case 100:
+                    fastForward = 50;
+                    fastForwardActive = 2;
+                    break;
+                case 500:
+                    fastForward = 100;
+                    fastForwardActive = 3;
+                    break;
 
-            } 
-        }
-        else if (e.GetKeyCode() == KEY_RIGHT)
-        {
-            switch (fastForward)
-            {
-            case 1:
-                fastForward = 10;
-                break;
-            case 10:
-                fastForward = 100;
-                break;
-            case 100:
-                fastForward = 500;
-                break;
-            case 500:
-                fastForward = 500;
-                break;
+                }
             }
-
+            else if (e.GetKeyCode() == KEY_RIGHT)
+            {
+                switch (fastForward)
+                {
+                case 1:
+                    fastForward = 10;
+                    fastForwardActive = 1;
+                    break;
+                case 10:
+                    fastForward = 50;
+                    fastForwardActive = 2;
+                    break;
+                case 50:
+                    fastForward = 100;
+                    fastForwardActive = 3;
+                    break;
+                case 100:
+                    fastForward = 500;
+                    fastForwardActive = 4;
+                    break;
+                case 500:
+                    fastForward = 500;
+                    fastForwardActive = 4;
+                    break;
+                }
+            }
         }
-        return false;
+        return true;
      });
 	
 }
@@ -171,9 +193,9 @@ void Universe::InitUniverse()
     // Init Universe
     fastForward = 1;
     Sun = new Body(0, 10.0f, 0.0f, 1.0f);
-    body = new Body(1, 3e-6f, 1.0f, 0.4f);
+    body = new Body(1, 3e-6f, 1.0f, 0.2f);
     trail = new Trail;
-    orbit = new Orbit(body, body->a, 0.0f, 0.0f, 2 * PI, 2.0f, UniverseTime, dt);
+    orbit = new Orbit(body, body->a, 0.0f, 0.0f, 7.0f, 2.0f, UniverseTime, dt);
 
     // Set Object Colors
     body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
@@ -200,8 +222,9 @@ void Universe::PhysicsLoop()
         newpos.y = orbit->y;
         // Update Time Variable
         UniverseTime += dt;
-        // update Trail
-        trail->UpdateTrail(newpos.x, newpos.y, orbit->periodCycles);
+        // update Trail in intervals
+        if (i % 500 == 0 || i % 500 == 1)
+            trail->UpdateTrail(newpos.x, newpos.y, !orbit->finishedPeriod);
         
     }
 
@@ -210,18 +233,14 @@ void Universe::PhysicsLoop()
     newScale.x = 0.2f;
     newScale.y = 0.2f;
     Sun->body_Transform.setScale(newScale);
-    newScale.x = 0.05f;
-    newScale.y = 0.05f;
     body->body_Transform.setScale(newScale);
 }
 
 void Universe::ResetOrbits()
 {
-    /// Reset Trail
-
-    trail->ResetTrail(orbit->x0, orbit->y0);
-    orbit->Reset();
     UniverseTime = 0.0f;
+    orbit->Reset();
+    trail->ResetVertices();
 }
 
 void  Universe::PauseUniverse()
@@ -255,11 +274,11 @@ void Universe::InitImGuiGlobalStyling()
     //bg coloring
     style->Colors[ImGuiCol_WindowBg] = ImColor(0, 0, 0);
     //style->Colors[ImGuiCol_FrameBgHovered] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
-    style->Colors[ImGuiCol_FrameBgActive] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
+    style->Colors[ImGuiCol_ButtonActive] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
     style->Colors[ImGuiCol_FrameBg] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     // Title bar for window is transparent
-    style->Colors[ImGuiCol_TitleBgActive] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
+    style->Colors[ImGuiCol_ButtonActive] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
     style->Colors[ImGuiCol_TitleBg] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
     style->Colors[ImGuiCol_TitleBgCollapsed] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -301,18 +320,19 @@ void Universe::fastForwardDisplay(const ImVec2& work_pos, const ImVec2& work_siz
 	ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x * 0.5f, work_pos.y + 25.0f), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(20, 20, 100, 1));
     if (ImGui::Begin("FF", p_open, window_flags)) {
+        
         ImGui::SetWindowFontScale(1.2f);
         // Fast Forward
-        static int active = 0;
-        if (ImGui::RadioButton("x1", &active, 0)) { fastForward = 1; }
+        
+        if (ImGui::RadioButton("x1", &fastForwardActive, 0)) { fastForward = 1; }
         ImGui::SameLine();
-        if (ImGui::RadioButton("x10", &active, 1)) { fastForward = 10; }
+        if (ImGui::RadioButton("x10", &fastForwardActive, 1)) { fastForward = 10; }
         ImGui::SameLine();
-        if (ImGui::RadioButton("x50", &active, 2)) { fastForward = 50; }
+        if (ImGui::RadioButton("x50", &fastForwardActive, 2)) { fastForward = 50; }
         ImGui::SameLine();
-        if (ImGui::RadioButton("x100", &active, 3)) { fastForward = 100; }
+        if (ImGui::RadioButton("x100", &fastForwardActive, 3)) { fastForward = 100; }
         ImGui::SameLine();
-        if (ImGui::RadioButton("x500", &active, 4)) { fastForward = 500; }
+        if (ImGui::RadioButton("x500", &fastForwardActive, 4)) { fastForward = 500; }
     }
     ImGui::End();
     ImGui::PopStyleColor();
@@ -331,10 +351,6 @@ void Universe::ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size)
 	ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     if (ImGui::Begin("BDReset", p_open, window_flags)) {
         ImGui::SetWindowFontScale(1.5f);
-        // Reset Trail Button //
-        if (ImGui::Button("Reset Trail")) { trail->ResetTrail(orbit->x0, orbit->y0); }
-		//ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
-        ImGui::Dummy(ImVec2(0.0f, 10.0f));
         // Reset Sim Button //
         if (ImGui::Button("Reset Orbit")) { ResetOrbits(); }
     }
@@ -367,20 +383,30 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
         ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
         window_flags |= ImGuiWindowFlags_NoMove;
     }
+    ImGuiIO io = ImGui::GetIO(); // for keyboard capture
+
     ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(189, 204, 242, 1));
     if (ImGui::Begin("Body Stats", p_open, window_flags)) {
+        // Set This Condition to prevent key interactiong with sim
+        if (io.WantCaptureKeyboard) {
+            statOverlayFocused = true;
+        }
+        else { statOverlayFocused = false; }
         // Window Settings
         ImGui::SetWindowFontScale(1.5f);
         // Orbit Stats //
         ImGui::Text("r: %f AU", orbit->r);
-        // Delta Toggle //
+        if (orbit->finishedPeriod) { ImGui::Text("period: %f yrs", orbit->period); }
+        else { ImGui::Text("period: UnDetermined"); }
+        // INPUTS //
+        // Delta Toggle // - ERASE FOR FINAL RELEASE
         ImGui::Text("dt: ");
         ImGui::SameLine(0.0f, 20.0f);
         ImGui::PushItemWidth(100.0f);
         if (ImGui::InputFloat("(yrs)", &dt, 0.0f, 0.0f, "%.4f")) { ResetOrbits(); }
         // Delta constraints //
-        if (dt >= 0.01f) { dt = 0.01f; }
+        if (dt > 0.01f) { dt = 0.01f; }
         if (dt <= 0.00001f) { dt = 0.00001f; }
         //ImGui::SliderFloat(" ", &dt, 0.001,0.1);
         // major axis toggle //
@@ -407,7 +433,6 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
         {
             ResetOrbits();
         }
-
     }
     ImGui::End();
     ImGui::PopStyleColor();
@@ -422,10 +447,17 @@ void Universe::PauseMenu(const ImVec2& work_pos, const ImVec2& work_size)
     // Universe Time //
     ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
-    //ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
     if (ImGui::Begin("Paused", p_open, window_flags)) {
         ImGui::SetWindowFontScale(4.0f);
         ImGui::Text("PAUSED", UniverseTime);
+    }
+    ImGui::End();
+
+    ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
+    ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) *0.5, (work_pos.y + work_size.y * 0.5) + 20.0f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    if (ImGui::Begin("Paused", p_open, window_flags)) {
+        ImGui::SetWindowFontScale(4.0f);
+        ImGui::Button("PAUSED");
     }
     ImGui::End();
     

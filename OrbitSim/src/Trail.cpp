@@ -41,27 +41,23 @@ void Trail::setAlpha(const float alphaVal)
     Trail_shader->SetUniformVec4fv("trailColor", trailColor);
 }
 
-void Trail::UpdateTrail(const float &x,const float &y, const unsigned int &periodCycles)
+void Trail::UpdateTrail(const float &x,const float &y, bool addNewVertices, unsigned int sizeLimit)
 {
     // Update vertices Only while orbit trail has not completed an Orbit period.
-    if (periodCycles == 0) {
+    if (addNewVertices || ((unsigned int)vertices.size() < sizeLimit)) {
         
         vertices.push_back(x);
         vertices.push_back(y);
         vertices.push_back(0.0f);
       
         vb->UpdateBuffer(&vertices[0], (unsigned int)(vertices.size() * sizeof(float)), true);
-        //std::cout << "dasf" << std::endl;
-    }
+    } 
+    //std::cout << "VertexSize: " << vertices.size() << std::endl;
     
-
 }
 
-
-
-
-void Trail::ResetTrail(const float x, const float y)
+void Trail::ResetVertices()
 {
     vertices.clear();
-    UpdateTrail(x, y, false);
 }
+

@@ -14,8 +14,8 @@ public:
 
     void setColor(const glm::vec4& color);
     void setAlpha(const float alphaVal);
-    void UpdateTrail(const float& x, const float& y,const unsigned int &isPeriodComplete);
-    void ResetTrail(const float x, const float y);
+    void UpdateTrail(const float& x, const float& y, bool addNewVertices = true, unsigned int sizeLimit = 100000);
+    void ResetVertices();
     
     glm::vec4 trailColor{ 1.0f,1.0f,1.0f,1.0f };
 

@@ -50,6 +50,7 @@ private:
 	void ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size);
 	void StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size);
 	void PauseMenu(const ImVec2& work_pos, const ImVec2& work_size);
+	bool statOverlayFocused = false;
 	// Universe Camera
 	GLCore::Utils::OrthographicCameraController m_CameraController;
 

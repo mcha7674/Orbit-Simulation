@@ -44,7 +44,9 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
     
     // Euler Cromer Method //
     if (!rkIntegration)
-    { 
+    {        
+        v_minus1 = v;
+
         // updating the force
         fx = FCONST(body->mass,r,B) * x;
         fy = FCONST(body->mass, r, B) * y;
@@ -121,11 +123,11 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
         f = sqrt(fx * fx + fy * fy);
     }
     
-   
-    isAphelion(v0, v);
-    isPerihelion(v0, v);
+    // Period Calculations
+    isAphelion(v_minus1, v);
+    isPerihelion(v_minus1, v);
     if (aphelionReached && perihelionReached && !finishedHalfPeriod) { 
-        period = 2 * t;
+        period = 2 * t + 50*dt;
         finishedHalfPeriod = true;
     }
     if (t >= period && !finishedPeriod) { 
@@ -150,47 +152,54 @@ void Orbit::Reset()
     // reset position, velocities, and energies to their previous values
     x = x0;
     y = y0;
+    r = sqrt(x * x + y * y);
     vx = vx0;
     vy = vy0;
+    v = sqrt(vx * vx + vy * vy);
+    v0 = v;
+
     t = 0.0f;
     finishedHalfPeriod = false;
     finishedPeriod = false;
     aphelionReached = false;
     perihelionReached = false;
+    aphelion = NULL;
+    perihelion = NULL;
     period = FLT_MAX;
+    periodCycles = 0;
+
+    iterations = 0;
+    itersTo1Period = MAXUINT;
     
-    // initialize magnitudes:
-    r = sqrt(x * x + y * y);     // magnitude of initial position
-    v = sqrt(vx * vx + vy * vy); // magnitude of initial velocity
-    v0 = v; // set initial var variable
-    // Initialize the force (magnitude)
+    // ReInitialize the force (magnitude)
     fx = (G_M * body->mass * x) / pow(r, B + 1.0f);
     fy = (G_M * body->mass * y) / pow(r, B + 1.0f);
     f = sqrt(fx * fx + fy * fy);
 
-    
-
     std::cout << "ORBIT RESET" << std::endl;
 }
 
-
-bool Orbit::isAphelion(float v0, float v)
+bool Orbit::isAphelion(float v_minus1, float v)
 {
-    if ((v - v0) > 0)
+    if ((v - v_minus1) > 0)
     {
         aphelionReached = true;
         return true;
     }
+    
+    
     return false;
 }
 
-bool Orbit::isPerihelion(float v0, float v)
+bool Orbit::isPerihelion(float v_minus1, float v)
 {
-    if ((v - v0) < 0)
+    if ((v - v_minus1) < 0)
     {
         perihelionReached = true;
         return true;
     }
+    
+    
     return false;
 }
 

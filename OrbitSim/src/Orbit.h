@@ -27,6 +27,8 @@ public:
     float vx;
     float vy;
     float v;
+    float v_minus1;
+    
     float v0;
     float vx0;
     float vy0;
@@ -44,9 +46,9 @@ public:
     float PE;
     float E;
     // time related vars (yr units)
-    float timeBuffer;
     float t;
     float dt;
+
     // Statistics
     float aphelion;   // max radius
     float perihelion; // min radius
