@@ -481,7 +481,6 @@ void Universe::PauseMenu(const ImVec2& work_pos, const ImVec2& work_size)
     static bool* p_open;
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 
-    // Universe Time //
     ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
     if (ImGui::Begin("Paused", p_open, window_flags)) {
@@ -496,9 +495,7 @@ void Universe::CrashMenu(const ImVec2& work_pos, const ImVec2& work_size)
     static bool* p_open;
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 
-    // Universe Time //
-    //ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
-    ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x, work_pos.y), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
     if (ImGui::Begin("Crashed", p_open, window_flags)) {
         ImGui::SetWindowFontScale(4.0f);
