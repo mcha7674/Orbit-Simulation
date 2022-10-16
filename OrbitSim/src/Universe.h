@@ -29,10 +29,10 @@ private:
 	void PhysicsLoop();
 	void PauseUniverse();
 	void ResetOrbits();
-
-	// Pause Universe Activation Bool
+	void detectCollision(const float &orbitR, const float& body1R, const float& body2R, const float& scale);
+	// Universe State Booleans
 	bool pauseUniverse;
-
+	bool bodyCrashed;
 
 	// Time Variables
 	float UniverseTime;
@@ -41,7 +41,8 @@ private:
 	// Universe Rendering
 	Renderer renderer;
 	void RenderUniverse();
-	// Universe UI
+
+	////////// Universe UI //////////
 	ImGuiStyle *style;
 	const ImGuiViewport* viewport;
 	void InitImGuiGlobalStyling();
@@ -50,8 +51,11 @@ private:
 	void ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size);
 	void StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size);
 	void PauseMenu(const ImVec2& work_pos, const ImVec2& work_size);
+	void CrashMenu(const ImVec2& work_pos, const ImVec2& work_size);
+
 	bool statOverlayFocused = false;
-	// Universe Camera
+
+	////////// Universe Camera //////////
 	GLCore::Utils::OrthographicCameraController m_CameraController;
 
 	

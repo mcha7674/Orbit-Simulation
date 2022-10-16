@@ -27,6 +27,7 @@ Universe::~Universe()
     delete orbit;
 }
 
+// Universe's gl prelims 
 void Universe::OnAttach()
 {
 	EnableGLDebugging();
@@ -69,12 +70,30 @@ void Universe::OnEvent(Event& event)
     // Pause Menu Space Bar Bind
     dispatcher.Dispatch<KeyPressedEvent>(
         [&](KeyPressedEvent &e){
-        if (e.GetKeyCode() == KEY_SPACE)
+        if ((e.GetKeyCode() == KEY_SPACE) && !bodyCrashed)
         {
             if (e.GetRepeatCount() >= 1) { pauseUniverse = false; }
             if (pauseUniverse) { pauseUniverse = false; }
-            else if (!pauseUniverse) { pauseUniverse = true; }
-            
+            else if (!pauseUniverse) { pauseUniverse = true; }    
+
+
+        }
+        else if ((e.GetKeyCode() == KEY_SPACE) && bodyCrashed)
+        {
+            if (e.GetRepeatCount() >= 1) { 
+                bodyCrashed = false; 
+                pauseUniverse = false;
+                ResetOrbits();
+            }
+            if (bodyCrashed) { 
+                bodyCrashed = false;
+                pauseUniverse = false;
+                ResetOrbits();
+            }
+            else if (!bodyCrashed) { 
+                bodyCrashed = true;
+                pauseUniverse = true;
+            }
         }
         return false;
     });
@@ -147,7 +166,7 @@ void Universe::OnEvent(Event& event)
 void Universe::OnUpdate(Timestep ts)
 {     
 	// Window Clearing and pause functions
-    if (!pauseUniverse) { 
+    if (!pauseUniverse || bodyCrashed) { 
         Application::Get().GetWindow().Clear();
         Sun->setAlpha(1.0f);
         body->setAlpha(1.0f);
@@ -164,12 +183,15 @@ void Universe::OnUpdate(Timestep ts)
 	Sun->Circle_shader->use();
 	Sun->Circle_shader->SetUniformMatrix4fv("viewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
     
+
 	// Physics Loop //
     if (!pauseUniverse)
     {
         PhysicsLoop();
-        UniverseTime += dt;
     }
+
+    
+
 	// Render Universe //
     RenderUniverse();
 }
@@ -182,7 +204,8 @@ void Universe::OnImGuiRender()
     StatsOverlay(work_pos, work_size);
     fastForwardDisplay(work_pos, work_size);
     ButtonDisplay(work_pos, work_size);
-    if (pauseUniverse) { PauseMenu(work_pos, work_size); }
+    if (pauseUniverse && !bodyCrashed) { PauseMenu(work_pos, work_size); }
+    else if (pauseUniverse && bodyCrashed) { CrashMenu(work_pos, work_size); }
     //ImGui::ShowDemoWindow();
 }
 //////////////////////////////////////////////////////////////////////////////////
@@ -195,7 +218,7 @@ void Universe::InitUniverse()
     Sun = new Body(0, 10.0f, 0.0f, 1.0f);
     body = new Body(1, 3e-6f, 1.0f, 0.2f);
     trail = new Trail;
-    orbit = new Orbit(body, body->a, 0.0f, 0.0f, 7.0f, 2.0f, UniverseTime, dt);
+    orbit = new Orbit(body, body->a, 0.0f, 0.0f, 4.0f, 2.0f, UniverseTime, dt);
 
     // Set Object Colors
     body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
@@ -203,15 +226,24 @@ void Universe::InitUniverse()
     Sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
 
     pauseUniverse = false;
+    bodyCrashed = false;
 }
 
 void Universe::PhysicsLoop()
 {
+    
     // Transform Body Positions	
     glm::vec3 newpos = glm::vec3(1.0f);
     newpos.x = orbit->x;
     newpos.y = orbit->y; // Correct for screen aspect ratio
     body->body_Transform.setPosition(newpos);
+
+    // Scale Bodies To see them better.
+    glm::vec3 newScale = glm::vec3(1.0f);
+    newScale.x = 0.5f;
+    newScale.y = newScale.x;
+    Sun->body_Transform.setScale(newScale);
+    body->body_Transform.setScale(newScale);
 
     // Update Orbit
     for (uint16_t i = 0; i < fastForward; i++)
@@ -226,14 +258,20 @@ void Universe::PhysicsLoop()
         if (i % 500 == 0 || i % 500 == 1)
             trail->UpdateTrail(newpos.x, newpos.y, !orbit->finishedPeriod);
         
+        // Collision Detection //
+        detectCollision(orbit->r, body->radius, Sun->radius, newScale.x);
+        
     }
+}
 
-    // Scale Bodies To see them better.
-    glm::vec3 newScale = glm::vec3(1.0f);
-    newScale.x = 0.2f;
-    newScale.y = 0.2f;
-    Sun->body_Transform.setScale(newScale);
-    body->body_Transform.setScale(newScale);
+void Universe::detectCollision(const float& orbitR, const float& body1R, const float& body2R, const float& scale)
+{
+    // orbit from edge of body instead of center
+    if ((orbitR - (body1R * scale)) <= body2R * scale)
+    {
+        bodyCrashed = true;
+        pauseUniverse = true;
+    }
 }
 
 void Universe::ResetOrbits()
@@ -397,8 +435,7 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
         ImGui::SetWindowFontScale(1.5f);
         // Orbit Stats //
         ImGui::Text("r: %f AU", orbit->r);
-        if (orbit->finishedPeriod) { ImGui::Text("period: %f yrs", orbit->period); }
-        else { ImGui::Text("period: UnDetermined"); }
+        
         // INPUTS //
         // Delta Toggle // - ERASE FOR FINAL RELEASE
         ImGui::Text("dt: ");
@@ -451,9 +488,25 @@ void Universe::PauseMenu(const ImVec2& work_pos, const ImVec2& work_size)
         ImGui::SetWindowFontScale(4.0f);
         ImGui::Text("PAUSED", UniverseTime);
     }
+    ImGui::End();  
+}
+
+void Universe::CrashMenu(const ImVec2& work_pos, const ImVec2& work_size)
+{
+    static bool* p_open;
+    static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+
+    // Universe Time //
+    //ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
+    ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x, work_pos.y), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
+    if (ImGui::Begin("Crashed", p_open, window_flags)) {
+        ImGui::SetWindowFontScale(4.0f);
+        ImGui::Text("Crashed", UniverseTime);
+    }
     ImGui::End();
 
-    
+
 }
 
 

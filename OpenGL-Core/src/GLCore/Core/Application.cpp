@@ -65,15 +65,6 @@ namespace GLCore {
 		EventDispatcher dispatcher(e);
 		// IF dispatcher sees windowCloseEvent, then it will dispatch it to OnWindowClose Function
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
-		// Add Escape Button Binding for Window Close 
-		dispatcher.Dispatch<KeyPressedEvent>([&](KeyPressedEvent &e){
-			if (e.GetKeyCode() == GLFW_KEY_ESCAPE)
-			{
-				m_Running = false; // Stop Simulation Loop
-				std::cout << "Escape Key Pressed..." << "Quiting..." << '\n';
-			}
-			return false; // return false so the KeyPressed Event type gets progagated to other layers
-		});
 		
 		// Dispatch Events to layers in layer stack
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin(); )
