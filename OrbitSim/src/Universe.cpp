@@ -48,8 +48,6 @@ void Universe::OnAttach()
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 
-    
-
 }
 
 void Universe::OnDetach()
@@ -105,7 +103,7 @@ void Universe::OnEvent(Event& event)
     dispatcher.Dispatch<MouseMovedEvent>(
         [&](MouseMovedEvent& mme) {
 
-            std::cout << "(" << mme.GetX() << ", " << mme.GetY() << ")" << std::endl;
+            //std::cout << "(" << mme.GetX() << ", " << mme.GetY() << ")" << std::endl;
             mouseXpos = mme.GetX();
             mouseYpos = mme.GetY();
 
@@ -114,13 +112,16 @@ void Universe::OnEvent(Event& event)
     dispatcher.Dispatch<MouseButtonPressedEvent>(
         [&](MouseButtonPressedEvent& mbe) {
             // Normalize and translate Mouse Positions to be within -1 and 1
-            mouseXpos -= (float)Application::Get().GetWindow().GetWidth()/2.0f;
-            mouseYpos -= (float)Application::Get().GetWindow().GetHeight()/2.0f;
-            mouseXpos /= (float)Application::Get().GetWindow().GetWidth() / 2.0f;
-            mouseYpos /= -1.0f*(float)Application::Get().GetWindow().GetHeight() / 2.0f;
-            // Adjust for orthographics
+            mouseXpos -= static_cast<float>(Application::Get().GetWindow().GetWidth()) / 2.0f;
+            mouseYpos -= static_cast<float>(Application::Get().GetWindow().GetHeight()) / 2.0f;
+            mouseXpos /= static_cast<float>(Application::Get().GetWindow().GetWidth()) / 2.0f;
+            mouseYpos /= static_cast<float>(Application::Get().GetWindow().GetHeight()) / 2.0f;
+            // Adjust for orthographic zoom
             mouseXpos*= m_CameraController.GetZoomLevel()*m_CameraController.GetAspectRatio();
-            mouseYpos*= m_CameraController.GetZoomLevel();
+            mouseYpos*= -1.0f * m_CameraController.GetZoomLevel();
+            // Adjust for camera Movement
+            mouseXpos += m_CameraController.GetCamPos().x;
+            mouseYpos += m_CameraController.GetCamPos().y;
            
             std::cout << "newMouseXpos: " << mouseXpos << std::endl;
             std::cout << "newMouseYpos: " << mouseYpos << std::endl;
@@ -242,7 +243,7 @@ void Universe::OnImGuiRender()
 }
 //////////////////////////////////////////////////////////////////////////////////
 
-// HELPER UNIVERSE FUNCTIONS
+// UNIVERSE FUNCTIONS //
 void Universe::InitUniverse()
 {
     // Init Universe
@@ -479,9 +480,11 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
         ImGui::SetWindowFontScale(1.5f);
         // Orbit Stats //
         ImGui::Text("r: %f AU", orbit->r);
-        ImGui::Text("v: %f AU", orbit->v);
-        ImGui::Separator();
+        ImGui::Text("v: %f AU/yr", orbit->v);
+        ImGui::NewLine();
+
         // INPUTS //
+        ImGui::Text("Inputs:");
         // Delta Toggle // - ERASE FOR FINAL RELEASE
         ImGui::Text("dt: ");
         ImGui::SameLine(0.0f, 20.0f);
@@ -491,13 +494,21 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
         if (dt > 0.01f) { dt = 0.01f; }
         if (dt <= 0.00001f) { dt = 0.00001f; }
         //ImGui::SliderFloat(" ", &dt, 0.001,0.1);
-        // major axis toggle //
+        // X position Toggle //
         ImGui::Text("x0: ");
         ImGui::SameLine(0.0f, 20.0f);
         ImGui::PushItemWidth(100.0f);
-        if (ImGui::InputFloat("##a", &orbit->x0))
+        if (ImGui::InputFloat("##x0", &orbit->x0))
         {
             body->a = orbit->x0;
+            ResetOrbits();
+        }
+        // Y position toggle //
+        ImGui::Text("y0: ");
+        ImGui::SameLine(0.0f, 20.0f);
+        ImGui::PushItemWidth(100.0f);
+        if (ImGui::InputFloat("##y0", &orbit->y0))
+        {
             ResetOrbits();
         }
         // Velocity and major axis toggle //

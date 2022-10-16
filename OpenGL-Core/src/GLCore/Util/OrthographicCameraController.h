@@ -23,6 +23,8 @@ namespace GLCore::Utils {
 		void SetZoomLevel(float level) { m_ZoomLevel = level; }
 		void SetAspectRatio(float ratio) { m_AspectRatio = ratio; }
 		float GetAspectRatio() const { return m_AspectRatio; }
+		float GetCamTranslationSpeed() const { return m_CameraTranslationSpeed; }
+		glm::vec3 GetCamPos() const { return m_CameraPosition; }
 
 		void ResetCamera();
 
