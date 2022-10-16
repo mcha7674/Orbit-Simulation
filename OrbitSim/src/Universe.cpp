@@ -4,6 +4,8 @@ using namespace GLCore;
 using namespace GLCore::Utils;
 
 static int fastForwardActive = 0;
+static float mouseXpos = 0.0f;
+static float mouseYpos = 0.0f;
 
 Universe::Universe()
 	:m_CameraController((float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), false, 1.0f) // init camera controller with the window aspect ratio
@@ -97,8 +99,38 @@ void Universe::OnEvent(Event& event)
         }
         return false;
     });
-   
     
+    
+    // Mouse Click Body Positioning
+    dispatcher.Dispatch<MouseMovedEvent>(
+        [&](MouseMovedEvent& mme) {
+
+            std::cout << "(" << mme.GetX() << ", " << mme.GetY() << ")" << std::endl;
+            mouseXpos = mme.GetX();
+            mouseYpos = mme.GetY();
+
+            return false;
+        });
+    dispatcher.Dispatch<MouseButtonPressedEvent>(
+        [&](MouseButtonPressedEvent& mbe) {
+            // Normalize and translate Mouse Positions to be within -1 and 1
+            mouseXpos -= (float)Application::Get().GetWindow().GetWidth()/2.0f;
+            mouseYpos -= (float)Application::Get().GetWindow().GetHeight()/2.0f;
+            mouseXpos /= (float)Application::Get().GetWindow().GetWidth() / 2.0f;
+            mouseYpos /= -1.0f*(float)Application::Get().GetWindow().GetHeight() / 2.0f;
+            // Adjust for orthographics
+            mouseXpos*= m_CameraController.GetZoomLevel()*m_CameraController.GetAspectRatio();
+            mouseYpos*= m_CameraController.GetZoomLevel();
+           
+            std::cout << "newMouseXpos: " << mouseXpos << std::endl;
+            std::cout << "newMouseYpos: " << mouseYpos << std::endl;
+            orbit->x0 = mouseXpos;
+            orbit->y0 = mouseYpos;
+            body->a = orbit->x0;
+            ResetOrbits();
+            return false;
+        });
+
     // Arrow Key Bind With Fast Forward
     dispatcher.Dispatch<KeyPressedEvent>(
     [&](KeyPressedEvent& e) {
@@ -352,14 +384,17 @@ void Universe::fastForwardDisplay(const ImVec2& work_pos, const ImVec2& work_siz
 {
     static bool* p_open;
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-
-	// Universe Time //
+    ImGuiIO io = ImGui::GetIO(); // for keyboard capture
 	ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
 	ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x * 0.5f, work_pos.y + 25.0f), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(20, 20, 100, 1));
     if (ImGui::Begin("FF", p_open, window_flags)) {
         
         ImGui::SetWindowFontScale(1.2f);
+        if (io.WantCaptureKeyboard) {
+            statOverlayFocused = true;
+        }
+        else { statOverlayFocused = false; }
         // Fast Forward
         
         if (ImGui::RadioButton("x1", &fastForwardActive, 0)) { fastForward = 1; }
@@ -384,11 +419,16 @@ void Universe::ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size)
 
     static bool* p_open;
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    ImGuiIO io = ImGui::GetIO(); // for event capture
     // For Top Right Corners - pivot (3rd parameter) allow for center and corner positioning (1.0,0.0) is top right for example
     ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - 15.0f, work_pos.y + 60.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
 	ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     if (ImGui::Begin("BDReset", p_open, window_flags)) {
         ImGui::SetWindowFontScale(1.5f);
+        if (io.WantCaptureKeyboard) {
+            statOverlayFocused = true;
+        }
+        else { statOverlayFocused = false; }
         // Reset Sim Button //
         if (ImGui::Button("Reset Orbit")) { ResetOrbits(); }
     }
@@ -399,6 +439,10 @@ void Universe::ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size)
     if (ImGui::Begin("CenterCam", p_open, window_flags))
     {
         ImGui::SetWindowFontScale(1.5f);
+        if (io.WantCaptureKeyboard) {
+            statOverlayFocused = true;
+        }
+        else { statOverlayFocused = false; }
         if (ImGui::Button("Center Cam")) { m_CameraController.ResetCamera(); }
     }
     ImGui::End();
@@ -435,13 +479,14 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
         ImGui::SetWindowFontScale(1.5f);
         // Orbit Stats //
         ImGui::Text("r: %f AU", orbit->r);
-        
+        ImGui::Text("v: %f AU", orbit->v);
+        ImGui::Separator();
         // INPUTS //
         // Delta Toggle // - ERASE FOR FINAL RELEASE
         ImGui::Text("dt: ");
         ImGui::SameLine(0.0f, 20.0f);
         ImGui::PushItemWidth(100.0f);
-        if (ImGui::InputFloat("(yrs)", &dt, 0.0f, 0.0f, "%.4f")) { ResetOrbits(); }
+        if (ImGui::InputFloat("(yrs)", &dt, 0.0f, 0.0f, "%.5f")) { ResetOrbits(); }
         // Delta constraints //
         if (dt > 0.01f) { dt = 0.01f; }
         if (dt <= 0.00001f) { dt = 0.00001f; }
@@ -470,6 +515,7 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
         {
             ResetOrbits();
         }
+        
     }
     ImGui::End();
     ImGui::PopStyleColor();
@@ -485,7 +531,7 @@ void Universe::PauseMenu(const ImVec2& work_pos, const ImVec2& work_size)
     ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
     if (ImGui::Begin("Paused", p_open, window_flags)) {
         ImGui::SetWindowFontScale(4.0f);
-        ImGui::Text("PAUSED", UniverseTime);
+        ImGui::Text("PAUSED");
     }
     ImGui::End();  
 }
@@ -499,7 +545,9 @@ void Universe::CrashMenu(const ImVec2& work_pos, const ImVec2& work_size)
     ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
     if (ImGui::Begin("Crashed", p_open, window_flags)) {
         ImGui::SetWindowFontScale(4.0f);
-        ImGui::Text("Crashed", UniverseTime);
+        ImGui::Text("   Crashed");
+        ImGui::SetWindowFontScale(2.0f);
+        ImGui::Text("Press 'Space Bar' to Reset");
     }
     ImGui::End();
 
