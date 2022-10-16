@@ -127,7 +127,6 @@ void Universe::OnEvent(Event& event)
             std::cout << "newMouseYpos: " << mouseYpos << std::endl;
             orbit->x0 = mouseXpos;
             orbit->y0 = mouseYpos;
-            body->a = orbit->x0;
             ResetOrbits();
             return false;
         });
@@ -198,7 +197,7 @@ void Universe::OnEvent(Event& event)
 
 void Universe::OnUpdate(Timestep ts)
 {     
-	// Window Clearing and pause functions
+	// Window Clearing and pause functions 
     if (!pauseUniverse || bodyCrashed) { 
         Application::Get().GetWindow().Clear();
         Sun->setAlpha(1.0f);
@@ -215,15 +214,12 @@ void Universe::OnUpdate(Timestep ts)
 	trail->Trail_shader->SetUniformMatrix4fv("viewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
 	Sun->Circle_shader->use();
 	Sun->Circle_shader->SetUniformMatrix4fv("viewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
-    
 
 	// Physics Loop //
     if (!pauseUniverse)
     {
         PhysicsLoop();
     }
-
-    
 
 	// Render Universe //
     RenderUniverse();
@@ -248,10 +244,10 @@ void Universe::InitUniverse()
 {
     // Init Universe
     fastForward = 1;
-    Sun = new Body(0, 10.0f, 0.0f, 1.0f);
-    body = new Body(1, 3e-6f, 1.0f, 0.2f);
+    Sun = new Body(0, 1.0f, 1.0f);
+    body = new Body(1, 3e-6f, 0.2f);
     trail = new Trail;
-    orbit = new Orbit(body, body->a, 0.0f, 0.0f, 4.0f, 2.0f, UniverseTime, dt);
+    orbit = new Orbit(body,1.0f, 0.0f, 0.0f, 2*PI, 2.0f, UniverseTime, dt);
 
     // Set Object Colors
     body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
@@ -316,10 +312,10 @@ void Universe::ResetOrbits()
 
 void  Universe::PauseUniverse()
 {
-    Application::Get().GetWindow().Clear(10.0f / 255.0f, 10.0f / 255.0f, 10.0f / 255.0f, 1.0f);
-    Sun->setAlpha(0.2f);
-    body->setAlpha(0.2f);
-    trail->setAlpha(0.1f);
+    Application::Get().GetWindow().Clear(1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f);
+    Sun->setAlpha(0.5f);
+    body->setAlpha(0.5f);
+    trail->setAlpha(0.5f);
 }
 
 void Universe::RenderUniverse()
@@ -500,7 +496,6 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
         ImGui::PushItemWidth(100.0f);
         if (ImGui::InputFloat("##x0", &orbit->x0))
         {
-            body->a = orbit->x0;
             ResetOrbits();
         }
         // Y position toggle //
@@ -541,7 +536,7 @@ void Universe::PauseMenu(const ImVec2& work_pos, const ImVec2& work_size)
     ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
     if (ImGui::Begin("Paused", p_open, window_flags)) {
-        ImGui::SetWindowFontScale(4.0f);
+        ImGui::SetWindowFontScale(3.0f);
         ImGui::Text("PAUSED");
     }
     ImGui::End();  
@@ -555,9 +550,10 @@ void Universe::CrashMenu(const ImVec2& work_pos, const ImVec2& work_size)
     ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
     if (ImGui::Begin("Crashed", p_open, window_flags)) {
-        ImGui::SetWindowFontScale(4.0f);
-        ImGui::Text("   Crashed");
+        ImGui::SetWindowFontScale(3.0f);
+        ImGui::Text("     Crashed");
         ImGui::SetWindowFontScale(2.0f);
+        ImGui::NewLine();
         ImGui::Text("Press 'Space Bar' to Reset");
     }
     ImGui::End();

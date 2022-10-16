@@ -2,8 +2,8 @@
 
 
 
-Body::Body(const unsigned int id, float m, float a, float rad, unsigned int numSides)
-	:ID(id),mass(m), a(a), radius(rad)
+Body::Body(const unsigned int id, float m, float rad, unsigned int numSides)
+	:ID(id),mass(m), radius(rad)
 {
 	NumberOfSides = numSides;
 	// Create The Circle vertices
