@@ -1,11 +1,12 @@
 #include "Universe.h"
-
+#include <algorithm>
 using namespace GLCore;
 using namespace GLCore::Utils;
 
 static int fastForwardActive = 0;
 static float mouseXpos = 0.0f;
 static float mouseYpos = 0.0f;
+static bool statOverlayFocused = false;
 
 Universe::Universe()
 	:m_CameraController((float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), false, 1.0f) // init camera controller with the window aspect ratio
@@ -16,6 +17,7 @@ Universe::Universe()
     // Init the ImGui Viewport
     viewport = ImGui::GetMainViewport();
     style = &ImGui::GetStyle();
+    plotStyle = &ImPlot::GetStyle();
     // Universal ImGui UI Styles
     InitImGuiGlobalStyling();
     // Initiate The Universe (Objects Atrributes.. etc)
@@ -235,11 +237,9 @@ void Universe::OnImGuiRender()
     ButtonDisplay(work_pos, work_size);
     if (pauseUniverse && !bodyCrashed) { PauseMenu(work_pos, work_size); }
     else if (pauseUniverse && bodyCrashed) { CrashMenu(work_pos, work_size); }
-    //ImGui::ShowDemoWindow();
-
     // ENERGY PLOT
-    //EnergyPlot();
-    ShowDemo_RealtimePlots();
+    EnergyPlot(work_pos, work_size);
+    
 }
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -573,59 +573,50 @@ void Universe::CrashMenu(const ImVec2& work_pos, const ImVec2& work_size)
 
 }
 
-void Universe::EnergyPlot()
-{
-    float x_data[10] = {1,2,3,4,5,6,7,8,9,10};
-    float y_data[10] = { -2,-1,0,1,2,3,4,5,4,16 };
-    ImGui::Begin("My Window");
-    if (ImPlot::BeginPlot("Line Plot")) {
-        ImPlot::SetupAxes("x", "f(x)");
-        ImPlot::PlotLine("x", x_data, y_data, 10);
-        //ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
-        //ImPlot::PlotLine("", xs2, ys2, 11);
-        ImPlot::EndPlot();
-    }
-    ImGui::End();
-}
 
-
-void Universe::ShowDemo_RealtimePlots() {
+void Universe::EnergyPlot(const ImVec2& work_pos, const ImVec2& work_size) {
     
-    static ScrollingBuffer sdata1, sdata2;
+    static bool* p_open;
+    static float *universeTime = &UniverseTime; // point to address of the updating universe time
+    static float* orbitKE = &(orbit->KE);
+    static float* orbitPE = &(orbit->PE);
     static RollingBuffer   rdata1, rdata2;
+   
 
-    ImVec2 energies = ImVec2(orbit->KE,orbit->PE);
+    ImVec2 energies = ImVec2(*orbitKE,*orbitPE);
     
-    //sdata1.AddPoint(UniverseTime, energies.x );
-    rdata1.AddPoint(UniverseTime, energies.x );
-    //sdata2.AddPoint(UniverseTime, energies.y );
-    rdata2.AddPoint(UniverseTime, energies.y );
+    // Add points
+    if (!pauseUniverse)
+    {
+        rdata1.AddPoint(*universeTime, energies.x);
+        rdata2.AddPoint(*universeTime, energies.y);
+    }
 
-    static float history = 10.0f;
-    ImGui::SliderFloat("History", &history, 1, 30, "%.1f s");
-    rdata1.Span = history;
-    rdata2.Span = history;
-
-    static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
-
-    /*if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 150))) {
-        ImPlot::SetupAxes(NULL, NULL, flags, flags);
-        ImPlot::SetupAxisLimits(ImAxis_X1, UniverseTime - history, UniverseTime, ImGuiCond_Always);
-        ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
-        ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
-        ImPlot::PlotShaded("Orbit X Position", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), -INFINITY, sdata1.Offset, 2 * sizeof(float));
-        ImPlot::PlotLine("Orbit Y Position", &sdata2.Data[0].x, &sdata2.Data[0].y, sdata2.Data.size(), sdata2.Offset, 2 * sizeof(float));
-        ImPlot::EndPlot();
-    }*/
-    if (ImPlot::BeginPlot("##Rolling", ImVec2(-1, 150))) {
-        ImPlot::SetupAxes("Time", "Energy", flags, flags); 
-        ImPlot::SetupAxisLimits(ImAxis_X1, 0, UniverseTime, ImGuiCond_Always);
-        ImPlot::SetupAxisLimits(ImAxis_Y1, -200, 200);
+    ImGuiIO io = ImGui::GetIO();
+    // Set Styles
+    plotStyle->MarkerSize = 2.0f;
+    plotStyle->Marker = ImPlotMarker_Asterisk;
+    
+    static ImPlotAxisFlags flags = ImPlotAxisFlags_NoMenus;
+    //static ImPlotFlags plotFlags = ImPlotFlags_NoTitle |ImPlotFlags_NoFrame;
+    static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+   
+    ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) * 0.5f, (work_pos.y + work_size.y) ), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
+    ImGui::Begin("Plot Window",p_open, window_flags);
+    if (ImPlot::BeginPlot("##RollingPlot", ImVec2(1000, 150))) {
+        if (io.WantCaptureMouse) {
+            statOverlayFocused = true;
+        }
+        else { statOverlayFocused = false; }
+        ImPlot::SetupAxes("Time (years)", "Energy (uJ)", flags, flags); 
+        ImPlot::SetupAxisLimits(ImAxis_X1, 0, *universeTime, ImGuiCond_Always);
+        ImPlot::SetupAxisLimits(ImAxis_Y1, std::min(rdata1.Data[0].y, rdata2.Data[0].y) * 5, std::max(rdata1.Data[0].y, rdata2.Data[0].y)*5, ImGuiCond_Always);
         ImPlot::PlotScatter("Kinetic Energy", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size());
         ImPlot::PlotScatter("Potential Energy", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size());
         
         ImPlot::EndPlot();
     }
+    ImGui::End();
 }
 
 

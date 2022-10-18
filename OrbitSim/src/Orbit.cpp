@@ -17,6 +17,12 @@ Orbit::Orbit(Body *body, float initx, float inity, float initvx, float initvy, f
     fx = FCONST(body->mass, r, B) * x;
     fy = FCONST(body->mass, r, B) * y;
     f = sqrt(fx * fx + fy * fy);
+    // Energy Inits
+    PE = -1 * (G_M * body->mass) / r;
+    PE *= 1e6; // micro jjoules
+    KE = 0.5 * body->mass * pow(v, 2);
+    KE *= 1e6;
+    E = KE + PE;
 
     // calculate Theoretical Statistics (period, aphelion, perihelion)
     aphelion = NULL;
@@ -184,6 +190,13 @@ void Orbit::Reset()
     fx = FCONST(body->mass, r, B);
     fy = FCONST(body->mass, r, B);
     f = sqrt(fx * fx + fy * fy);
+
+    // Energy Reinits
+    PE = -1 * (G_M * body->mass) / r;
+    PE *= 1e6; // micro jjoules
+    KE = 0.5 * body->mass * pow(v, 2);
+    KE *= 1e6;
+    E = KE + PE;
     
 
     std::cout << "ORBIT RESET" << std::endl;
