@@ -59,7 +59,14 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
         x = x + (vx * dt);
         y = y + (vy * dt);
         r = sqrt(x * x + y * y);
-        //std::cout << f << std::endl;
+        // Update Energy
+        PE = -1 * (G_M * body->mass) / r;
+        PE *= 1e6; // micro jjoules
+        KE = 0.5 * body->mass * pow(v, 2);
+        KE *= 1e6;
+        E = KE + PE;
+        //std::cout << "KE: " << KE << std::endl;
+        //std::cout << "PE: " << PE << std::endl;
 
     }
     else { // Runga Kutta 4th Order Method //
@@ -126,7 +133,7 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
     }
     
     // Period Calculations //
-    isAphelion(v_minus1, v);
+    /*isAphelion(v_minus1, v);
     isPerihelion(v_minus1, v);
     if (aphelionReached && perihelionReached && !finishedHalfPeriod) { 
         period = 2 * t + 50*dt;
@@ -139,7 +146,7 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
     if (iterations == itersTo1Period) { 
         periodCycles++; 
         iterations = 0;
-    }
+    }*/
     iterations++;
 }
 
