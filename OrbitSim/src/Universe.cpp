@@ -236,6 +236,9 @@ void Universe::OnImGuiRender()
     if (pauseUniverse && !bodyCrashed) { PauseMenu(work_pos, work_size); }
     else if (pauseUniverse && bodyCrashed) { CrashMenu(work_pos, work_size); }
     //ImGui::ShowDemoWindow();
+
+    // ENERGY PLOT
+    EnergyPlot();
 }
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -540,6 +543,7 @@ void Universe::PauseMenu(const ImVec2& work_pos, const ImVec2& work_size)
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 
     ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
+    // center the window
     ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) *0.5f, (work_pos.y + work_size.y) *0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     if (ImGui::Begin("Paused", p_open, window_flags)) {
         ImGui::SetWindowFontScale(3.0f);
@@ -554,8 +558,7 @@ void Universe::CrashMenu(const ImVec2& work_pos, const ImVec2& work_size)
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 
     ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
-    //ImGui::SetNextWindowPos
-    //ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
+    // center the window
     ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) * 0.5f, (work_pos.y + work_size.y) * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     if (ImGui::Begin("Crashed", p_open, window_flags)) {
         ImGui::SetWindowFontScale(3.0f);
@@ -568,5 +571,64 @@ void Universe::CrashMenu(const ImVec2& work_pos, const ImVec2& work_size)
 
 
 }
+
+void Universe::EnergyPlot()
+{
+    float x_data[10] = {1,2,3,4,5,6,7,8,9,10};
+    float y_data[10] = { -2,-1,0,1,2,3,4,5,4,16 };
+    ImGui::Begin("My Window");
+    if (ImPlot::BeginPlot("Line Plot")) {
+        ImPlot::SetupAxes("x", "f(x)");
+        ImPlot::PlotLine("x", x_data, y_data, 10);
+        //ImPlot::SetNextMarkerStyle(ImPlotMarker_Circle);
+        //ImPlot::PlotLine("", xs2, ys2, 11);
+        ImPlot::EndPlot();
+    }
+    ImGui::End();
+}
+
+//void Universe::ShowDemo_RealtimePlots() {
+//    ImGui::BulletText("Move your mouse to change the data!");
+//    ImGui::BulletText("This example assumes 60 FPS. Higher FPS requires larger buffer size.");
+//    static ScrollingBuffer sdata1, sdata2;
+//    static RollingBuffer   rdata1, rdata2;
+//    ImVec2 mouse = ImGui::GetMousePos();
+//    static float t = 0;
+//    t += ImGui::GetIO().DeltaTime;
+//    sdata1.AddPoint(t, mouse.x * 0.0005f);
+//    rdata1.AddPoint(t, mouse.x * 0.0005f);
+//    sdata2.AddPoint(t, mouse.y * 0.0005f);
+//    rdata2.AddPoint(t, mouse.y * 0.0005f);
+//
+//    static float history = 10.0f;
+//    ImGui::SliderFloat("History", &history, 1, 30, "%.1f s");
+//    rdata1.Span = history;
+//    rdata2.Span = history;
+//
+//    static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
+//
+//    if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 150))) {
+//        ImPlot::SetupAxes(NULL, NULL, flags, flags);
+//        ImPlot::SetupAxisLimits(ImAxis_X1, t - history, t, ImGuiCond_Always);
+//        ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
+//        ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
+//        ImPlot::PlotShaded("Mouse X", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), -INFINITY, sdata1.Offset, 2 * sizeof(float));
+//        ImPlot::PlotLine("Mouse Y", &sdata2.Data[0].x, &sdata2.Data[0].y, sdata2.Data.size(), sdata2.Offset, 2 * sizeof(float));
+//        ImPlot::EndPlot();
+//    }
+//    if (ImPlot::BeginPlot("##Rolling", ImVec2(-1, 150))) {
+//        ImPlot::SetupAxes(NULL, NULL, flags, flags);
+//        ImPlot::SetupAxisLimits(ImAxis_X1, 0, history, ImGuiCond_Always);
+//        ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
+//        ImPlot::PlotLine("Mouse X", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size(), 0, 2 * sizeof(float));
+//        ImPlot::PlotLine("Mouse Y", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size(), 0, 2 * sizeof(float));
+//        ImPlot::EndPlot();
+//    }
+//}
+
+
+
+
+
 
 

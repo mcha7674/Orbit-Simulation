@@ -1,21 +1,22 @@
 #include "glpch.h"
 #include "ImGuiLayer.h"
 
-#include "imgui.h"
-#include "examples/imgui_impl_glfw.h"
-#include "examples/imgui_impl_opengl3.h"
-
-// IMGUI PLOTS //
-#include "implot.h" 
-#include "implot_internal.h"
-#include "implot.cpp"
-#include "implot_items.cpp"
-// END PLOT INCLUDES //
-
-#include "../Core/Application.h"
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
+
+#include "imgui.h"
+// IMGUI PLOTS //
+#include "implot.h" 
+
+#include "examples/imgui_impl_glfw.h"
+#include "examples/imgui_impl_opengl3.h"
+
+
+
+#include "../Core/Application.h"
+
+
 
 namespace GLCore {
 
@@ -29,6 +30,7 @@ namespace GLCore {
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
+		ImPlot::CreateContext();
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
@@ -59,6 +61,7 @@ namespace GLCore {
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
+		ImPlot::DestroyContext();
 	}
 	
 	void ImGuiLayer::Begin()

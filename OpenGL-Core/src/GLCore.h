@@ -8,6 +8,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui.h>
+// Plot Includes
+#include <implot.h>
+// END PLOT INCLUDES //
 
 #include "GLCore/Core/Application.h"
 #include "GLCore/Core/KeyCodes.h"

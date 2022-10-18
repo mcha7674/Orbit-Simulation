@@ -7,6 +7,8 @@
 #include "Trail.h"
 #include <GLCore.h>
 
+
+
 class Universe : public GLCore::Layer
 {
 public:
@@ -52,6 +54,10 @@ private:
 	void StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size);
 	void PauseMenu(const ImVec2& work_pos, const ImVec2& work_size);
 	void CrashMenu(const ImVec2& work_pos, const ImVec2& work_size);
+
+	// Plots
+	void EnergyPlot();
+	void ShowDemo_RealtimePlots();
 
 	bool statOverlayFocused = false;
 
