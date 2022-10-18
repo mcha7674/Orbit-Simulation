@@ -19,8 +19,9 @@ Universe::Universe()
     // Universal ImGui UI Styles
     InitImGuiGlobalStyling();
     // Initiate The Universe (Objects Atrributes.. etc)
-    InitUniverse();
+    InitUniverse();    
 }
+
 Universe::~Universe()
 {
 	delete body;
@@ -123,8 +124,6 @@ void Universe::OnEvent(Event& event)
             mouseXpos += m_CameraController.GetCamPos().x;
             mouseYpos += m_CameraController.GetCamPos().y;
            
-            std::cout << "newMouseXpos: " << mouseXpos << std::endl;
-            std::cout << "newMouseYpos: " << mouseYpos << std::endl;
             orbit->x0 = mouseXpos;
             orbit->y0 = mouseYpos;
             ResetOrbits();
@@ -203,6 +202,7 @@ void Universe::OnUpdate(Timestep ts)
         Sun->setAlpha(1.0f);
         body->setAlpha(1.0f);
         trail->setAlpha(0.7f);
+        //background->setColor(1.0f,1.0f,1.0f,1.0f);
     } else { PauseUniverse(); }
 
 	// Key Handling (cam controller update)
@@ -214,7 +214,7 @@ void Universe::OnUpdate(Timestep ts)
 	trail->Trail_shader->SetUniformMatrix4fv("viewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
 	Sun->Circle_shader->use();
 	Sun->Circle_shader->SetUniformMatrix4fv("viewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
-
+    
 	// Physics Loop //
     if (!pauseUniverse)
     {
@@ -244,8 +244,10 @@ void Universe::InitUniverse()
 {
     // Init Universe
     fastForward = 1;
+    
+    // Objects
     Sun = new Body(0, 1.0f, 1.0f);
-    body = new Body(1, 3e-6f, 0.2f);
+    body = new Body(1, 3e-6f, 0.1f);
     trail = new Trail;
     orbit = new Orbit(body,1.0f, 0.0f, 0.0f, 2*PI, 2.0f, UniverseTime, dt);
 
@@ -253,6 +255,7 @@ void Universe::InitUniverse()
     body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
     trail->setColor(glm::vec4{ 0.5f,0.4f,0.4f,0.7f});
     Sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
+
 
     pauseUniverse = false;
     bodyCrashed = false;
@@ -269,7 +272,7 @@ void Universe::PhysicsLoop()
 
     // Scale Bodies To see them better.
     glm::vec3 newScale = glm::vec3(1.0f);
-    newScale.x = 0.5f;
+    newScale.x = 0.4f;
     newScale.y = newScale.x;
     Sun->body_Transform.setScale(newScale);
     body->body_Transform.setScale(newScale);
@@ -320,6 +323,8 @@ void  Universe::PauseUniverse()
 
 void Universe::RenderUniverse()
 {
+   
+    
     // Trail																 
     renderer.DrawLineStrip(trail->va, *(trail->Trail_shader), trail->trail_Transform, (unsigned int)trail->vertices.size() / 3); //- divide trail by size/3 since GL_LINE_STRIP count is num of vertices
     // Bodies
@@ -375,6 +380,7 @@ void Universe::TimeDisplay(const ImVec2& work_pos, const ImVec2& work_size)
         ImGui::Text("FPS : %d", (uint8_t)(1.0f / Application::Get().GetDeltaTime()));
     }
     ImGui::End();
+    
 }
 
 void Universe::fastForwardDisplay(const ImVec2& work_pos, const ImVec2& work_size)

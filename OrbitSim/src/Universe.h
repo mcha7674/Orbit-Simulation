@@ -58,8 +58,6 @@ private:
 	////////// Universe Camera //////////
 	GLCore::Utils::OrthographicCameraController m_CameraController;
 
-	
-	
 };
 
 

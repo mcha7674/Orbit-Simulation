@@ -54,7 +54,7 @@ void Renderer::DrawRect(const VertexArray& va, const IndexBuffer& ib, Shader& sh
     CALCULATE_MODEL_MATRIX();
     // set shader uniforms
     setUniforms(m_model, shader);
-    GLCall(glDrawElements(GL_TRIANGLES, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
+    GLCall(glDrawElements(GL_TRIANGLES, ib.GetCount(), ib_GLtype, 0));
 }
 
 

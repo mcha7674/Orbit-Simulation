@@ -59,6 +59,8 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
         x = x + (vx * dt);
         y = y + (vy * dt);
         r = sqrt(x * x + y * y);
+        //std::cout << f << std::endl;
+
     }
     else { // Runga Kutta 4th Order Method //
 
@@ -123,7 +125,7 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
         f = sqrt(fx * fx + fy * fy);
     }
     
-    // Period Calculations
+    // Period Calculations //
     isAphelion(v_minus1, v);
     isPerihelion(v_minus1, v);
     if (aphelionReached && perihelionReached && !finishedHalfPeriod) { 
@@ -172,13 +174,15 @@ void Orbit::Reset()
     itersTo1Period = MAXUINT;
     
     // ReInitialize the force (magnitude)
-    fx = (G_M * body->mass * x) / pow(r, B + 1.0f);
-    fy = (G_M * body->mass * y) / pow(r, B + 1.0f);
+    fx = FCONST(body->mass, r, B);
+    fy = FCONST(body->mass, r, B);
     f = sqrt(fx * fx + fy * fy);
+    
 
     std::cout << "ORBIT RESET" << std::endl;
 }
 
+// Incorporate a dt correction check 
 bool Orbit::isAphelion(float v_minus1, float v)
 {
     if ((v - v_minus1) > 0)

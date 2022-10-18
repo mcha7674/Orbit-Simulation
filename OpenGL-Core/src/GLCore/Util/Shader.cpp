@@ -52,7 +52,6 @@ namespace GLCore::Utils {
 			glDeleteShader(shader);
 
 			LOG_ERROR("{0}", infoLog.data());
-			// HZ_CORE_ASSERT(false, "Shader compilation failure!");
 		}
 
 		return shader;
@@ -96,7 +95,6 @@ namespace GLCore::Utils {
 			glDeleteShader(fragmentShader);
 
 			LOG_ERROR("{0}", infoLog.data());
-			// HZ_CORE_ASSERT(false, "Shader link failure!");
 		}
 		
 		glDetachShader(program, vertexShader);

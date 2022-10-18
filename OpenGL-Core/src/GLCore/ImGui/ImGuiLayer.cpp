@@ -5,6 +5,13 @@
 #include "examples/imgui_impl_glfw.h"
 #include "examples/imgui_impl_opengl3.h"
 
+// IMGUI PLOTS //
+//#include "implot.h" 
+//#include "implot_internal.h"
+//#include "implot.cpp"
+//#include "implot_items.cpp"
+// END PLOT INCLUDES //
+
 #include "../Core/Application.h"
 
 #include <GLFW/glfw3.h>
