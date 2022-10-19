@@ -1,4 +1,4 @@
-#include "Universe.h"
+#include "SBuniverse.h"
 #include <algorithm>
 using namespace GLCore;
 using namespace GLCore::Utils;
@@ -12,10 +12,10 @@ static int fastForwardActive = 0;
 bool pauseUniverse = false;
 bool bodyCrashed = false;
 
-Universe::Universe()
+SBuniverse::SBuniverse()
 	:m_CameraController((float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), false, 1.0f) // init camera controller with the window aspect ratio
 {
-	UniverseTime = 0.0f;
+	SBuniverseTime = 0.0f;
 	dt = 0.0001;
 
     // Init the ImGui Viewport
@@ -25,10 +25,10 @@ Universe::Universe()
     // Universal ImGui UI Styles
     InitImGuiGlobalStyling();
     // Initiate The Universe (Objects Atrributes.. etc)
-    InitUniverse();    
+    InitSBuniverse();    
 }
 
-Universe::~Universe()
+SBuniverse::~SBuniverse()
 {
 	delete body;
     delete Sun;
@@ -37,7 +37,7 @@ Universe::~Universe()
 }
 
 // Universe's gl prelims 
-void Universe::OnAttach()
+void SBuniverse::OnAttach()
 {
 	EnableGLDebugging();
 
@@ -57,7 +57,7 @@ void Universe::OnAttach()
 
 }
 
-void Universe::OnDetach()
+void SBuniverse::OnDetach()
 {
     // Unbind and delete buffers
 	body->va.UnBind();
@@ -69,7 +69,7 @@ void Universe::OnDetach()
 }
 
 // Event Handling layer
-void Universe::OnEvent(Event& event)
+void SBuniverse::OnEvent(Event& event)
 {
 	// orthographic camera Event Dispatching (seperate dispatching)
 	m_CameraController.OnEvent(event);
@@ -200,7 +200,7 @@ void Universe::OnEvent(Event& event)
 	
 }
 
-void Universe::OnUpdate(Timestep ts)
+void SBuniverse::OnUpdate(Timestep ts)
 {     
 	// Window Clearing and pause functions 
     if (!pauseUniverse || bodyCrashed) { 
@@ -209,7 +209,7 @@ void Universe::OnUpdate(Timestep ts)
         body->setAlpha(1.0f);
         trail->setAlpha(0.7f);
         //background->setColor(1.0f,1.0f,1.0f,1.0f);
-    } else { PauseUniverse(); }
+    } else { PauseSBuniverse(); }
 
 	// Key Handling (cam controller update)
 	m_CameraController.OnUpdate(ts);
@@ -228,14 +228,16 @@ void Universe::OnUpdate(Timestep ts)
     }
 
 	// Render Universe //
-    RenderUniverse();
+    RenderSBuniverse();
 }
 
-void Universe::OnImGuiRender()
+void SBuniverse::OnImGuiRender()
 {
     // ViewPort Positions
     ImVec2 work_pos = viewport->Pos;
     ImVec2 work_size = viewport->Size;
+    // ENERGY PLOT
+    if (showEnergyPlot) { EnergyPlot(work_pos, work_size, orbit->KE, orbit->PE); }
     // Overlays
     TimeDisplay(work_pos, work_size);
     StatsOverlay(work_pos, work_size);
@@ -245,13 +247,12 @@ void Universe::OnImGuiRender()
     // Pause And Crash Menus
     if (pauseUniverse && !bodyCrashed) { PauseMenu(work_pos, work_size); }
     else if (pauseUniverse && bodyCrashed) { CrashMenu(work_pos, work_size); }
-    // ENERGY PLOT
-    if (showEnergyPlot) { EnergyPlot(work_pos, work_size); }
+    
 }
 //////////////////////////////////////////////////////////////////////////////////
 
 // UNIVERSE FUNCTIONS //
-void Universe::InitUniverse()
+void SBuniverse::InitSBuniverse()
 {
     // Init Universe
     fastForward = 1;
@@ -260,7 +261,7 @@ void Universe::InitUniverse()
     Sun = new Body(0, 1.0f, 1.0f);
     body = new Body(1, 3e-6f, 0.1f);
     trail = new Trail;
-    orbit = new Orbit(body,1.0f, 0.0f, 0.0f, 2*PI, 2.0f, UniverseTime, dt);
+    orbit = new Orbit(body,1.0f, 0.0f, 0.0f, 2*PI, 2.0f, SBuniverseTime, dt);
 
     // Set Object Colors
     body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
@@ -268,7 +269,7 @@ void Universe::InitUniverse()
     Sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
 }
 
-void Universe::PhysicsLoop()
+void SBuniverse::PhysicsLoop()
 {
     // Transform Body Positions	
     glm::vec3 newpos = glm::vec3(1.0f);
@@ -286,12 +287,12 @@ void Universe::PhysicsLoop()
     // Update Orbit
     for (uint16_t i = 0; i < fastForward; i++)
     {
-        orbit->Update(UniverseTime, dt, false);
+        orbit->Update(SBuniverseTime, dt, false);
         // Update Orbit Trail
         newpos.x = orbit->x;
         newpos.y = orbit->y;
         // Update Time Variable
-        UniverseTime += dt;
+        SBuniverseTime += dt;
         // update Trail in intervals
         if (i % 500 == 0 || i % 500 == 1)
             trail->UpdateTrail(newpos.x, newpos.y, !orbit->finishedPeriod);
@@ -301,7 +302,7 @@ void Universe::PhysicsLoop()
     }
 }
 
-void Universe::detectCollision(const float& orbitR, const float& body1R, const float& body2R, const float& scale)
+void SBuniverse::detectCollision(const float& orbitR, const float& body1R, const float& body2R, const float& scale)
 {
     // orbit from edge of body instead of center
     if ((orbitR - (body1R * scale)) <= body2R * scale)
@@ -311,14 +312,14 @@ void Universe::detectCollision(const float& orbitR, const float& body1R, const f
     }
 }
 
-void Universe::ResetOrbits()
+void SBuniverse::ResetOrbits()
 {
-    UniverseTime = 0.0f;
+    SBuniverseTime = 0.0f;
     orbit->Reset();
     trail->ResetVertices();
 }
 
-void  Universe::PauseUniverse()
+void  SBuniverse::PauseSBuniverse()
 {
     Application::Get().GetWindow().Clear(1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f, 1.0f);
     Sun->setAlpha(0.5f);
@@ -326,7 +327,7 @@ void  Universe::PauseUniverse()
     trail->setAlpha(0.5f);
 }
 
-void Universe::RenderUniverse()
+void SBuniverse::RenderSBuniverse()
 {
    
     
@@ -340,7 +341,7 @@ void Universe::RenderUniverse()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
 //// CUSTOM IMGUI DISPLAYS ////
-void Universe::InitImGuiGlobalStyling()
+void SBuniverse::InitImGuiGlobalStyling()
 {
     style->Colors[ImGuiCol_Text] = ImColor(153, 178, 242);
     style->Colors[ImGuiCol_Border] = ImColor(0, 0, 0);
@@ -361,7 +362,7 @@ void Universe::InitImGuiGlobalStyling()
     style->WindowBorderSize = 0.0f;
 }
 
-void Universe::TimeDisplay(const ImVec2& work_pos, const ImVec2& work_size)
+void SBuniverse::TimeDisplay(const ImVec2& work_pos, const ImVec2& work_size)
 {
     static bool* p_open;
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
@@ -373,7 +374,7 @@ void Universe::TimeDisplay(const ImVec2& work_pos, const ImVec2& work_size)
     if (ImGui::Begin("Time", p_open, window_flags)) {
 
         ImGui::SetWindowFontScale(1.5f);
-        ImGui::Text("Time: %f Years", UniverseTime);
+        ImGui::Text("Time: %f Years", SBuniverseTime);
     }
     ImGui::End();
     // FPS
@@ -387,7 +388,7 @@ void Universe::TimeDisplay(const ImVec2& work_pos, const ImVec2& work_size)
     
 }
 
-void Universe::fastForwardDisplay(const ImVec2& work_pos, const ImVec2& work_size)
+void SBuniverse::fastForwardDisplay(const ImVec2& work_pos, const ImVec2& work_size)
 {
     static bool* p_open;
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
@@ -421,7 +422,7 @@ void Universe::fastForwardDisplay(const ImVec2& work_pos, const ImVec2& work_siz
 
 
 
-void Universe::ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size)
+void SBuniverse::ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size)
 {
 
     static bool* p_open;
@@ -479,7 +480,7 @@ void Universe::ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size)
 
 }
 
-void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
+void SBuniverse::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
 {
     static int corner = 0;
     static bool* p_open;
@@ -497,10 +498,6 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
     }
     ImGuiIO io = ImGui::GetIO(); // for keyboard capture
 
-    static std::string E_Stat = ("E: " + scientificNum(&orbit->E) + " J");
-    static std::string KE_Stat = ("KE: " + scientificNum(&orbit->KE) + " J");
-    static std::string PE_Stat = ("PE: " + scientificNum(&orbit->PE) + " J");
-
     ImGui::SetNextWindowBgAlpha(0.02f); // Transparent background
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(189, 204, 242, 1));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1, 1, 1, 1));
@@ -514,13 +511,17 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
         // Window Settings
         ImGui::SetWindowFontScale(1.5f);
         // Orbit Stats //
-        ImGui::Text("Statistics:");
+        ImGui::Text("   Body Statistics");
+        ImGui::Separator();
         ImGui::Text("r: %f AU", orbit->r);
         ImGui::Text("v: %f AU/yr", orbit->v);
         
-        ImGui::Text(E_Stat.c_str());
-        ImGui::Text(KE_Stat.c_str());
-        ImGui::Text(PE_Stat.c_str());
+        static int E_expCount = scientificDivCount(&orbit->E);
+        static int KE_expCount = scientificDivCount(&orbit->KE);
+        static int PE_expCount = scientificDivCount(&orbit->PE);
+        ImGui::Text("E: %.1f+e%i J",orbit->E/pow(10,E_expCount), E_expCount);
+        ImGui::Text("KE: %.1f+e%i J",orbit->KE/pow(10,KE_expCount), KE_expCount);
+        ImGui::Text("PE: %.1f+e%i J",orbit->PE/pow(10,PE_expCount), PE_expCount);
         ImGui::NewLine();
     }
     ImGui::End();
@@ -529,7 +530,7 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
 
 }
 
-void Universe::InputsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
+void SBuniverse::InputsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
 {
 
     static bool* p_open;
@@ -547,7 +548,8 @@ void Universe::InputsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
         else { statOverlayFocused = false; }
         ImGui::SetWindowFontScale(1.5f);
         // INPUTS //
-        ImGui::Text("Inputs:");
+        ImGui::Text("       Inputs");
+        ImGui::Separator();
         // Delta Toggle // - ERASE FOR FINAL RELEASE
         ImGui::Text("dt: ");
         ImGui::SameLine(0.0f, 20.0f);
@@ -595,7 +597,7 @@ void Universe::InputsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
     ImGui::PopStyleColor();
 }
 
-void Universe::PauseMenu(const ImVec2& work_pos, const ImVec2& work_size)
+void SBuniverse::PauseMenu(const ImVec2& work_pos, const ImVec2& work_size)
 {
     static bool* p_open;
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
@@ -610,7 +612,7 @@ void Universe::PauseMenu(const ImVec2& work_pos, const ImVec2& work_size)
     ImGui::End();
 }
 
-void Universe::CrashMenu(const ImVec2& work_pos, const ImVec2& work_size)
+void SBuniverse::CrashMenu(const ImVec2& work_pos, const ImVec2& work_size)
 {
     static bool* p_open;
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
@@ -631,20 +633,19 @@ void Universe::CrashMenu(const ImVec2& work_pos, const ImVec2& work_size)
 }
 
 
-void Universe::EnergyPlot(const ImVec2& work_pos, const ImVec2& work_size) {
+void SBuniverse::EnergyPlot(const ImVec2& work_pos, const ImVec2& work_size, float &orbitKE, float& orbitPE) {
 
     static bool* p_open;
-    static float* universeTime = &UniverseTime; // point to address of the updating universe time
-    static float* orbitKE = &(orbit->KE);
-    static float* orbitPE = &(orbit->PE);
+    static float* SBTime = &SBuniverseTime; // point to address of the updating universe time
     static RollingBuffer   rdata1, rdata2;
 
-
-    ImVec2 energies = ImVec2(*orbitKE, *orbitPE);
-
     // Add points
-    rdata1.AddPoint(*universeTime, energies.x);
-    rdata2.AddPoint(*universeTime, energies.y);
+    if (!pauseUniverse)
+    {
+        rdata1.AddPoint(*SBTime, orbitKE);
+        rdata2.AddPoint(*SBTime, orbitPE);
+    }
+    
    
 
     ImGuiIO io = ImGui::GetIO();
@@ -673,7 +674,7 @@ void Universe::EnergyPlot(const ImVec2& work_pos, const ImVec2& work_size) {
         static float y_max = std::max(rdata1.Data[0].y, rdata2.Data[0].y);
         //Plot Setup
         ImPlot::SetupAxes("Time (Years)", "Energy (Joules)", flags, flags);
-        ImPlot::SetupAxisLimits(ImAxis_X1, 0, *universeTime, ImGuiCond_Always);
+        ImPlot::SetupAxisLimits(ImAxis_X1, 0, *SBTime, ImGuiCond_Always);
         //std::cout << y_min << ", "<<y_max << std::endl;
         // Determine realtime y limits
         if (abs(y_min) < y_max)
@@ -683,7 +684,7 @@ void Universe::EnergyPlot(const ImVec2& work_pos, const ImVec2& work_size) {
         { // Make Bounderies Symmetrical
             y_max = abs(y_min);
         }
-        ImPlot::SetupAxisLimits(ImAxis_Y1, y_min * 1.2, y_max * 1.2);
+        ImPlot::SetupAxisLimits(ImAxis_Y1, y_min * 2, y_max * 2);
         ImPlot::SetupLegend(ImPlotLocation_SouthEast);
 
         ImPlot::PlotScatter("Kinetic Energy", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size());
@@ -696,23 +697,17 @@ void Universe::EnergyPlot(const ImVec2& work_pos, const ImVec2& work_size) {
 
 
 
-// Utility Function to convert Large stringified Number to Scientific Notation 
-std::string Universe::scientificNum(const float *og_num)
+// Utility Function to help convert Large Number to Scientific Notation for use in imgui stats
+int SBuniverse::scientificDivCount(float *og_num)
 {
     float num = *og_num;
-    std::string newNum = "";
-    unsigned int count = 0;
+    int count = 0;
     while (((int)num)/100 != 0 )
     {
         num /= 10;
-    //std::cout << "num = " << num << std::endl;
         count++;
     }
-    std::cout << "num = " << num << std::endl;
-    newNum = std::to_string((int)num);
-    newNum += "e" + std::to_string(count);
-    std::cout << newNum << std::endl;
-    return newNum;
+    return count;
 }
 
 

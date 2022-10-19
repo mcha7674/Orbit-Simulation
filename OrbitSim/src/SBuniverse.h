@@ -9,11 +9,11 @@
 
 
 
-class Universe : public GLCore::Layer
+class SBuniverse : public GLCore::Layer
 {
 public:
-	Universe();
-	virtual ~Universe();
+	SBuniverse();
+	virtual ~SBuniverse();
 	// Layer Functions
 	virtual void OnAttach() override;
 	virtual void OnDetach() override;
@@ -26,23 +26,23 @@ private:
 	Orbit *orbit;
 	Trail* trail;
 
-	// Universe Helper Functions
-	void InitUniverse();
+	// SBuniverse Helper Functions
+	void InitSBuniverse();
 	void PhysicsLoop();
-	void PauseUniverse();
+	void PauseSBuniverse();
 	void ResetOrbits();
 	void detectCollision(const float &orbitR, const float& body1R, const float& body2R, const float& scale);
-	std::string scientificNum(const float *num);
+	int scientificDivCount(float *num);
 	
 	// Time Variables
-	float UniverseTime;
+	float SBuniverseTime;
 	float dt;
 	uint16_t fastForward;
-	// Universe Rendering
+	// SBuniverse Rendering
 	Renderer renderer;
-	void RenderUniverse();
+	void RenderSBuniverse();
 
-	////////// Universe UI //////////
+	////////// SBuniverse UI //////////
 	ImGuiStyle *style;
 	ImPlotStyle* plotStyle;
 	const ImGuiViewport* viewport;
@@ -56,9 +56,9 @@ private:
 	void CrashMenu(const ImVec2& work_pos, const ImVec2& work_size);
 
 	// Plots
-	void EnergyPlot(const ImVec2& work_pos, const ImVec2& work_size);
+	void EnergyPlot(const ImVec2& work_pos, const ImVec2& work_size, float& orbitKE, float& orbitPE);
 
-	////////// Universe Camera //////////
+	////////// SBuniverse Camera //////////
 	GLCore::Utils::OrthographicCameraController m_CameraController;
 
 };

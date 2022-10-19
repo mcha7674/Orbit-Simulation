@@ -1,4 +1,4 @@
-#include "Universe.h"
+#include "SBuniverse.h"
 
 // Universe Application //
 class UniverseApp : public GLCore::Application
@@ -8,7 +8,7 @@ public:
 		: GLCore::Application("Orbit Simulator")
 	{
 		// Add the Universe Layer to layer stack
-		PushLayer(new Universe());
+		PushLayer(new SBuniverse());
 	}
 };
 
