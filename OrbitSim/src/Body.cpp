@@ -1,11 +1,12 @@
 #include "Body.h"
 
-
+static const float sunMass = 1.989e30;
 
 Body::Body(const unsigned int id, float m, float rad, unsigned int numSides)
 	:ID(id),mass(m), radius(rad)
 {
-	//texture = nullptr;
+	// Convert Mass Fraction to Sun Mass Units
+	mass *= sunMass;
 	NumberOfSides = numSides;
 	// Create The Circle vertices
 	InitCircle(NumberOfSides, radius);

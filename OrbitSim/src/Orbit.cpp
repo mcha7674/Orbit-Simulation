@@ -67,10 +67,11 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
         r = sqrt(x * x + y * y);
         // Update Energy
         PE = -1 * (G_M * body->mass) / r;
-        PE *= 1e6; // micro jjoules
+        //PE *= 1e6;
         KE = 0.5 * body->mass * pow(v, 2);
-        KE *= 1e6;
+        //KE *= 1e6;
         E = KE + PE;
+        //std::cout << E << std::endl;
         //std::cout << "KE: " << KE << std::endl;
         //std::cout << "PE: " << PE << std::endl;
 

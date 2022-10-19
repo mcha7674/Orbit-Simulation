@@ -3,10 +3,14 @@
 using namespace GLCore;
 using namespace GLCore::Utils;
 
-static int fastForwardActive = 0;
 static float mouseXpos = 0.0f;
 static float mouseYpos = 0.0f;
 static bool statOverlayFocused = false;
+static bool showEnergyPlot = true;
+// Universe State Booleans
+static int fastForwardActive = 0;
+bool pauseUniverse = false;
+bool bodyCrashed = false;
 
 Universe::Universe()
 	:m_CameraController((float)Application::Get().GetWindow().GetWidth() / (float)Application::Get().GetWindow().GetHeight(), false, 1.0f) // init camera controller with the window aspect ratio
@@ -229,17 +233,20 @@ void Universe::OnUpdate(Timestep ts)
 
 void Universe::OnImGuiRender()
 {
+    // ViewPort Positions
     ImVec2 work_pos = viewport->Pos;
     ImVec2 work_size = viewport->Size;
+    // Overlays
     TimeDisplay(work_pos, work_size);
     StatsOverlay(work_pos, work_size);
+    InputsOverlay(work_pos, work_size);
     fastForwardDisplay(work_pos, work_size);
     ButtonDisplay(work_pos, work_size);
+    // Pause And Crash Menus
     if (pauseUniverse && !bodyCrashed) { PauseMenu(work_pos, work_size); }
     else if (pauseUniverse && bodyCrashed) { CrashMenu(work_pos, work_size); }
     // ENERGY PLOT
-    EnergyPlot(work_pos, work_size);
-    
+    if (showEnergyPlot) { EnergyPlot(work_pos, work_size); }
 }
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -259,15 +266,10 @@ void Universe::InitUniverse()
     body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
     trail->setColor(glm::vec4{ 0.5f,0.4f,0.4f,0.7f});
     Sun->setColor(1.0f, 1.0f, 0.0f, 1.0f);
-
-
-    pauseUniverse = false;
-    bodyCrashed = false;
 }
 
 void Universe::PhysicsLoop()
 {
-    
     // Transform Body Positions	
     glm::vec3 newpos = glm::vec3(1.0f);
     newpos.x = orbit->x;
@@ -296,7 +298,6 @@ void Universe::PhysicsLoop()
         
         // Collision Detection //
         detectCollision(orbit->r, body->radius, Sun->radius, newScale.x);
-        
     }
 }
 
@@ -354,7 +355,6 @@ void Universe::InitImGuiGlobalStyling()
     style->Colors[ImGuiCol_FrameBg] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     // Title bar for window is transparent
-    style->Colors[ImGuiCol_ButtonActive] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
     style->Colors[ImGuiCol_TitleBg] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
     style->Colors[ImGuiCol_TitleBgCollapsed] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -427,8 +427,9 @@ void Universe::ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size)
     static bool* p_open;
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     ImGuiIO io = ImGui::GetIO(); // for event capture
-    // For Top Right Corners - pivot (3rd parameter) allow for center and corner positioning (1.0,0.0) is top right for example
-    ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - 15.0f, work_pos.y + 60.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+
+    // Reset Orbit Button
+    ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - 15.0f, work_pos.y + 30.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
 	ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     if (ImGui::Begin("BDReset", p_open, window_flags)) {
         ImGui::SetWindowFontScale(1.5f);
@@ -441,7 +442,8 @@ void Universe::ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size)
     }
     ImGui::End();
 
-    ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - 15.0f, work_pos.y + work_size.y-30.0f), ImGuiCond_Always, ImVec2(1.0f, 1.0f));
+    // Center Cam Button
+    ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - 25.0f, work_pos.y +70.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     if (ImGui::Begin("CenterCam", p_open, window_flags))
     {
@@ -454,13 +456,34 @@ void Universe::ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size)
     }
     ImGui::End();
 
+    // Show Plot CheckBox Button
+    ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - 7.0f, work_pos.y  + 115.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(1.0f, 1.0f, 1.0f, 0.15));
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(255.0f, 255.0f, 255.0f, 0.5));
+    
+    if (ImGui::Begin("ShowPlot", p_open, window_flags))
+    {
+        ImGui::SetWindowFontScale(1.5f);
+        if (io.WantCaptureKeyboard) {
+            statOverlayFocused = true;
+        }
+        else { statOverlayFocused = false; }
+        ImGui::Text("Show Plot");
+        ImGui::SameLine();
+        if (ImGui::Checkbox("##ShowEnergy", &showEnergyPlot)) { }
+    }
+    ImGui::End();
+    ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
+
 }
 
 void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
 {
     static int corner = 0;
     static bool* p_open;
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     if (corner != -1) {
         const float PAD = 15.0f;
         ImVec2 window_pos, window_pos_pivot;
@@ -474,8 +497,14 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
     }
     ImGuiIO io = ImGui::GetIO(); // for keyboard capture
 
-    ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
+    static std::string E_Stat = ("E: " + scientificNum(&orbit->E) + " J");
+    static std::string KE_Stat = ("KE: " + scientificNum(&orbit->KE) + " J");
+    static std::string PE_Stat = ("PE: " + scientificNum(&orbit->PE) + " J");
+
+    ImGui::SetNextWindowBgAlpha(0.02f); // Transparent background
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(189, 204, 242, 1));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1, 1, 1, 1));
+    ImGui::SetNextWindowSize(ImVec2(235, 160));
     if (ImGui::Begin("Body Stats", p_open, window_flags)) {
         // Set This Condition to prevent key interactiong with sim
         if (io.WantCaptureKeyboard) {
@@ -485,10 +514,38 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
         // Window Settings
         ImGui::SetWindowFontScale(1.5f);
         // Orbit Stats //
+        ImGui::Text("Statistics:");
         ImGui::Text("r: %f AU", orbit->r);
         ImGui::Text("v: %f AU/yr", orbit->v);
+        
+        ImGui::Text(E_Stat.c_str());
+        ImGui::Text(KE_Stat.c_str());
+        ImGui::Text(PE_Stat.c_str());
         ImGui::NewLine();
+    }
+    ImGui::End();
+    ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
 
+}
+
+void Universe::InputsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
+{
+
+    static bool* p_open;
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    ImGuiIO io = ImGui::GetIO(); // for keyboard capture
+    ImGui::SetNextWindowBgAlpha(0.02f); // Transparent background
+    ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) * 0.0f + 15.0f, work_pos.y + 185.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(189, 204, 242, 1));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1, 1, 1, 1));
+    if (ImGui::Begin("Body Inputs", p_open, window_flags)) {
+        // Set This Condition to prevent key interactiong with sim
+        if (io.WantCaptureKeyboard) {
+            statOverlayFocused = true;
+        }
+        else { statOverlayFocused = false; }
+        ImGui::SetWindowFontScale(1.5f);
         // INPUTS //
         ImGui::Text("Inputs:");
         // Delta Toggle // - ERASE FOR FINAL RELEASE
@@ -514,7 +571,7 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
         ImGui::PushItemWidth(100.0f);
         if (ImGui::InputFloat("##y0", &orbit->y0))
         {
-            ResetOrbits();
+        ResetOrbits();
         }
         // Velocity and major axis toggle //
         ImGui::Text("vx0: ");
@@ -531,11 +588,11 @@ void Universe::StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size)
         {
             ResetOrbits();
         }
-        
+
     }
     ImGui::End();
     ImGui::PopStyleColor();
-
+    ImGui::PopStyleColor();
 }
 
 void Universe::PauseMenu(const ImVec2& work_pos, const ImVec2& work_size)
@@ -545,12 +602,12 @@ void Universe::PauseMenu(const ImVec2& work_pos, const ImVec2& work_size)
 
     ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     // center the window
-    ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) *0.5f, (work_pos.y + work_size.y) *0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) * 0.5f, (work_pos.y + work_size.y) * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     if (ImGui::Begin("Paused", p_open, window_flags)) {
         ImGui::SetWindowFontScale(3.0f);
         ImGui::Text("PAUSED");
     }
-    ImGui::End();  
+    ImGui::End();
 }
 
 void Universe::CrashMenu(const ImVec2& work_pos, const ImVec2& work_size)
@@ -575,42 +632,60 @@ void Universe::CrashMenu(const ImVec2& work_pos, const ImVec2& work_size)
 
 
 void Universe::EnergyPlot(const ImVec2& work_pos, const ImVec2& work_size) {
-    
+
     static bool* p_open;
-    static float *universeTime = &UniverseTime; // point to address of the updating universe time
+    static float* universeTime = &UniverseTime; // point to address of the updating universe time
     static float* orbitKE = &(orbit->KE);
     static float* orbitPE = &(orbit->PE);
     static RollingBuffer   rdata1, rdata2;
-   
 
-    ImVec2 energies = ImVec2(*orbitKE,*orbitPE);
-    
+
+    ImVec2 energies = ImVec2(*orbitKE, *orbitPE);
+
     // Add points
-    if (!pauseUniverse)
-    {
-        rdata1.AddPoint(*universeTime, energies.x);
-        rdata2.AddPoint(*universeTime, energies.y);
-    }
+    rdata1.AddPoint(*universeTime, energies.x);
+    rdata2.AddPoint(*universeTime, energies.y);
+   
 
     ImGuiIO io = ImGui::GetIO();
     // Set Styles
-    plotStyle->MarkerSize = 2.0f;
+    plotStyle->MarkerSize = 2.0f; 
     plotStyle->Marker = ImPlotMarker_Asterisk;
-    
+    plotStyle->FillAlpha = 0.0f;
+    plotStyle->Colors[ImPlotCol_AxisBg] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
+    plotStyle->Colors[ImPlotCol_FrameBg] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
+    plotStyle->Colors[ImPlotCol_PlotBg] = ImColor(0.0f, 0.0f, 0.0f, 0.0f);
+
     static ImPlotAxisFlags flags = ImPlotAxisFlags_NoMenus;
     //static ImPlotFlags plotFlags = ImPlotFlags_NoTitle |ImPlotFlags_NoFrame;
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-   
-    ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) * 0.5f, (work_pos.y + work_size.y) ), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
-    ImGui::Begin("Plot Window",p_open, window_flags);
-    if (ImPlot::BeginPlot("##RollingPlot", ImVec2(1000, 150))) {
+
+    
+    ImGui::SetNextWindowBgAlpha(0.0f);
+    ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) * 0.5f, (work_pos.y + work_size.y)), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
+    ImGui::Begin("Plot Window", p_open, window_flags);
+    if (ImPlot::BeginPlot("##RollingPlot", ImVec2(1000, 200))) {
         if (io.WantCaptureMouse) {
             statOverlayFocused = true;
         }
         else { statOverlayFocused = false; }
-        ImPlot::SetupAxes("Time (years)", "Energy (uJ)", flags, flags); 
+        static float y_min = std::min(rdata1.Data[0].y, rdata2.Data[0].y);
+        static float y_max = std::max(rdata1.Data[0].y, rdata2.Data[0].y);
+        //Plot Setup
+        ImPlot::SetupAxes("Time (Years)", "Energy (Joules)", flags, flags);
         ImPlot::SetupAxisLimits(ImAxis_X1, 0, *universeTime, ImGuiCond_Always);
-        ImPlot::SetupAxisLimits(ImAxis_Y1, std::min(rdata1.Data[0].y, rdata2.Data[0].y) * 5, std::max(rdata1.Data[0].y, rdata2.Data[0].y)*5, ImGuiCond_Always);
+        //std::cout << y_min << ", "<<y_max << std::endl;
+        // Determine realtime y limits
+        if (abs(y_min) < y_max)
+        { // Make Bounderies Symmetrical
+            y_min = y_max;
+        }else if (abs(y_min) > y_max)
+        { // Make Bounderies Symmetrical
+            y_max = abs(y_min);
+        }
+        ImPlot::SetupAxisLimits(ImAxis_Y1, y_min * 1.2, y_max * 1.2);
+        ImPlot::SetupLegend(ImPlotLocation_SouthEast);
+
         ImPlot::PlotScatter("Kinetic Energy", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size());
         ImPlot::PlotScatter("Potential Energy", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size());
         
@@ -621,7 +696,24 @@ void Universe::EnergyPlot(const ImVec2& work_pos, const ImVec2& work_size) {
 
 
 
-
+// Utility Function to convert Large stringified Number to Scientific Notation 
+std::string Universe::scientificNum(const float *og_num)
+{
+    float num = *og_num;
+    std::string newNum = "";
+    unsigned int count = 0;
+    while (((int)num)/100 != 0 )
+    {
+        num /= 10;
+    //std::cout << "num = " << num << std::endl;
+        count++;
+    }
+    std::cout << "num = " << num << std::endl;
+    newNum = std::to_string((int)num);
+    newNum += "e" + std::to_string(count);
+    std::cout << newNum << std::endl;
+    return newNum;
+}
 
 
 

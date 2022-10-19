@@ -32,10 +32,8 @@ private:
 	void PauseUniverse();
 	void ResetOrbits();
 	void detectCollision(const float &orbitR, const float& body1R, const float& body2R, const float& scale);
-	// Universe State Booleans
-	bool pauseUniverse;
-	bool bodyCrashed;
-
+	std::string scientificNum(const float *num);
+	
 	// Time Variables
 	float UniverseTime;
 	float dt;
@@ -53,14 +51,12 @@ private:
 	void fastForwardDisplay(const ImVec2& work_pos, const ImVec2& work_size);
 	void ButtonDisplay(const ImVec2& work_pos, const ImVec2& work_size);
 	void StatsOverlay(const ImVec2& work_pos, const ImVec2& work_size);
+	void InputsOverlay(const ImVec2& work_pos, const ImVec2& work_size);
 	void PauseMenu(const ImVec2& work_pos, const ImVec2& work_size);
 	void CrashMenu(const ImVec2& work_pos, const ImVec2& work_size);
 
 	// Plots
-	
 	void EnergyPlot(const ImVec2& work_pos, const ImVec2& work_size);
-
-	
 
 	////////// Universe Camera //////////
 	GLCore::Utils::OrthographicCameraController m_CameraController;
@@ -86,5 +82,7 @@ struct RollingBuffer {
 		Data.clear();
 	}
 };
+
+
 
 
