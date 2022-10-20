@@ -30,6 +30,9 @@ namespace GLCore {
 		inline float GetDeltaTime() { return DeltaTime; }
 
 		inline static Application& Get() { return *s_Instance; }
+
+		inline LayerStack* GetLayerStack() {return &m_LayerStack;}
+
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 	private:

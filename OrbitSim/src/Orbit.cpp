@@ -71,30 +71,8 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
         KE = 0.5 * body->mass * pow(v, 2);
         //KE *= 1e6;
         E = KE + PE;
-        //std::cout << E << std::endl;
-        //std::cout << "KE: " << KE << std::endl;
-        //std::cout << "PE: " << PE << std::endl;
-
     }
-    else { // Runga Kutta 4th Order Method //
-
-        // 2nd order
-        // partial step: f + (df * dt * scale)
-        /*float k1y = -FCONST(1.0, r, B) * y;
-        float k1x = -FCONST(1.0, r, B) * x;
-
-        float vy_u = vy + (k1y*dt*0.5);
-        float y_u = y + (vy_u * dt * 0.5);
-        float k2y = -FCONST(1.0, r, B) * y_u;
-
-        float vx_u = vx + (k1x * dt * 0.5);
-        float x_u = x + (vx_u * dt * 0.5);
-        float k2x = -FCONST(1.0, r, B) * x_u;
-
-        ax = (k1x + (k2x) ) / 2.0f;
-        ay = (k1y + (k2y) ) / 2.0f;*/
-
-        
+    else { // Runga Kutta 4th Order Method //    
         //k1 - acceleration at current location
         float k1x = -fx;
         float k1y = -fy;

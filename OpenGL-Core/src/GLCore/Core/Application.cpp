@@ -45,7 +45,6 @@ namespace GLCore {
 		// Renderer::Init();
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);
-
 		DeltaTime = 1.0f/60.0f;
 	}
 

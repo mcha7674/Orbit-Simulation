@@ -19,6 +19,7 @@ namespace GLCore {
 		~LayerStack(); // deletes all layers in layerstack
 
 		void PushLayer(Layer* layer);
+		// Overlayes get pushed to second half of layerstack
 		void PushOverlay(Layer* overlay);
 		void PopLayer(Layer* layer); // Will pop layer from m_Layers but not delete it
 		void PopOverlay(Layer* overlay);

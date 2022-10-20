@@ -1,0 +1,49 @@
+#pragma once
+
+//#include <GLCoreUtils.h> // Orbit.h includes this
+//#include "Body.h" // Orbit.h Includes this
+//#include <GLAbstraction.h> // Trail.h Includes this
+#include "Orbit.h"
+#include "Trail.h"
+#include <GLCore.h>
+#include "UI.h"
+
+
+class Universe : public GLCore::Layer
+{
+public:
+	Universe();
+	virtual ~Universe();
+	// Layer Functions
+	virtual void OnAttach() override;
+	virtual void OnDetach() override;
+	virtual void OnEvent(GLCore::Event& event) override;
+	virtual void OnUpdate(GLCore::Timestep ts) override;
+	virtual void OnImGuiRender() override;
+private:
+	////////// Universe OBJECTS //////////
+	Body *Sun;
+	Body *body;
+	Orbit *orbit;
+	Trail* trail;
+	////////// Universe Helper Functions //////////
+	void InitUniverse();
+	void PhysicsLoop();
+	void PauseUniverse();
+	void ResetOrbits();
+	void detectCollision(const float &orbitR, const float& body1R, const float& body2R, const float& scale);	
+	////////// Universe Time Variables //////////
+	float UniverseTime;
+	float dt;
+	////////// Universe Rendering //////////
+	Renderer renderer;
+	void RenderUniverse();
+	////////// Universe UI //////////
+	UI *universeUI;
+	////////// Universe Camera //////////
+	GLCore::Utils::OrthographicCameraController m_CameraController;
+
+};
+
+
+
