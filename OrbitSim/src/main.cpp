@@ -5,11 +5,10 @@ class UniverseApp : public GLCore::Application
 {
 public:
 	UniverseApp()
-		: GLCore::Application("Sun-Body Orbit Simulator")
+		: GLCore::Application("Star-Body Orbit Simulator")
 	{
 		// Add the Sun-Body Universe Layer to layer stack
-		PushLayer(new Universe());
-			
+		PushLayer(new Universe());		
 	}
 private:
 		

@@ -1,6 +1,7 @@
 #include "UI.h"
 
 static float massMultiplier = 1.0f;
+float bodyMass = 3.00273f; // in Micro Solar Masses
 
 UI::UI(float* UniverseTime, float* TimeStep, GLCore::Utils::OrthographicCameraController* m_CameraController, Orbit* bodyOrbit)
 	:UniverseTime(UniverseTime), TimeStep(TimeStep), m_CameraController(m_CameraController), bodyOrbit(bodyOrbit)
@@ -150,33 +151,50 @@ void UI::StatsOverlay()
     ImGui::SetNextWindowBgAlpha(0.02f); // Transparent background
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(189, 204, 242, 1));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1, 1, 1, 1));
-    ImGui::SetNextWindowSize(ImVec2(240, 170));
-    if (ImGui::Begin("Body Stats", NULL, window_flags)) {
+    ImGui::SetNextWindowSize(ImVec2(240, 180));
+    if (ImGui::Begin("Stats", NULL, window_flags)) {
         // Set This Condition to prevent key interactiong with sim
         // Window Settings
         ImGui::SetWindowFontScale(windowScale);
         // Orbit Stats //
-        ImGui::Text("   Body Statistics");
+        ImGui::Text("Statistics");
         ImGui::Separator();
         ImGui::Text("r: %f AU", bodyOrbit->r);
         ImGui::Text("v: %f AU/yr", bodyOrbit->v);
-            
-        static int E_expCount = scientificDivCount(bodyOrbit->E);
-        static int KE_expCount = scientificDivCount(bodyOrbit->KE);
-        static int PE_expCount = scientificDivCount(bodyOrbit->PE);
-        ImGui::Text("E: %.1f+e%i J", bodyOrbit->E/pow(10,E_expCount), E_expCount);
-        ImGui::Text("KE: %.1f+e%i J", bodyOrbit->KE/pow(10,KE_expCount), KE_expCount);
-        ImGui::Text("PE: %.1f+e%i J", bodyOrbit->PE/pow(10,PE_expCount), PE_expCount);
-        // MASS OUTPUT
+        ImGui::Text("(vx,vy): (%.3f, %.3f)", bodyOrbit->vx, bodyOrbit->vy);
+        static int E_expCount = 0;
+        static int KE_expCount = 0;
+        static int PE_expCount = 0;
+        if (bodyOrbit->E < 1) { 
+            E_expCount = scientificMultCount(bodyOrbit->E); 
+            ImGui::Text("E: %.1fe-%i", bodyOrbit->E * pow(10, E_expCount), E_expCount);
+        }
+        else{ 
+            ImGui::Text("E: %.1f", bodyOrbit->E);
+        }
+        if (bodyOrbit->KE < 1) { 
+            KE_expCount = scientificMultCount(bodyOrbit->KE);
+            ImGui::Text("KE: %.1fe-%i", bodyOrbit->KE * pow(10, KE_expCount), KE_expCount);
+        }
+        else { 
+            ImGui::Text("KE: %.1f", bodyOrbit->KE );
+        }
+        if (bodyOrbit->PE < 1) { 
+            PE_expCount = scientificMultCount(bodyOrbit->PE);
+            ImGui::Text("PE: %.1fe-%i", bodyOrbit->PE * pow(10, PE_expCount), PE_expCount);
+        }
+        else { 
+            ImGui::Text("PE: %.1f", bodyOrbit->PE);
+        }
+        // Body MASS OUTPUT //
         static int M_expCount = 0;
         if (bodyOrbit->body->mass > 1) { 
             M_expCount = scientificDivCount(bodyOrbit->body->mass); 
-            ImGui::Text("Mass: %.1f+e%i Solar",bodyOrbit->body->mass/pow(10,M_expCount), M_expCount);
+            ImGui::Text("Body mass: %.1f+e%i Solar",bodyOrbit->body->mass/pow(10,M_expCount), M_expCount);
         } else { 
             M_expCount = scientificMultCount(bodyOrbit->body->mass); 
-            ImGui::Text("Mass: %.1f-e%i Solar", bodyOrbit->body->mass * pow(10, M_expCount), M_expCount);
+            ImGui::Text("Body mass: %.1f-e%i Solar", bodyOrbit->body->mass * pow(10, M_expCount), M_expCount);
         }
-        
     } ImGui::End(); ImGui::PopStyleColor(); ImGui::PopStyleColor();
 }
 
@@ -186,19 +204,18 @@ void UI::InputsOverlay(bool &orbitReset)
     static float windowScale = 1.3;
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     ImGui::SetNextWindowBgAlpha(0.02f); // Transparent background
-    ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) * 0.0f + 15.0f, work_pos.y + 195.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
+    ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) * 0.0f + 15.0f, work_pos.y + 205.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(189, 204, 242, 1));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1, 1, 1, 1));
-    ImGui::SetItemDefaultFocus();
     if (ImGui::Begin("Body Inputs", NULL, window_flags)) {
         // Set This Condition to prevent key interactiong with sim
         ImGui::SetWindowFontScale(windowScale);
         // INPUTS //
-        ImGui::Text("       Inputs");
+        ImGui::Text("Variables");
         ImGui::Separator();
         // Time Step Toggle // - ERASE FOR FINAL RELEASE
         ImGui::Text("dt: ");ImGui::SameLine(0.0f, 20.0f);ImGui::PushItemWidth(100.0f);
-        if (ImGui::InputFloat("(yrs)", TimeStep, 0.0f, 0.0f, "%.5f")) { orbitReset = true; }
+        if (ImGui::InputFloat("Yrs", TimeStep, 0.0f, 0.0f, "%.5f")) { orbitReset = true; }
         // Time Step constraints //
         if (*TimeStep > 0.01f) { *TimeStep = 0.01f; }
         if (*TimeStep <= 0.00001f) { *TimeStep = 0.00001f; }
@@ -208,23 +225,21 @@ void UI::InputsOverlay(bool &orbitReset)
         ImGui::Text("y0: "); ImGui::SameLine(0.0f, 20.0f); ImGui::PushItemWidth(100.0f);
         if (ImGui::InputFloat("##y0", &bodyOrbit->y0)) { orbitReset = true; }ImGui::SameLine(0.0f); ImGui::Text("AU");
         // Velocity Toggles //
-        ImGui::Text("vx0: "); ImGui::SameLine(); ImGui::PushItemWidth(100.0f);
+        ImGui::Text("vx0: "); ImGui::SameLine(0.0f,12.0f); ImGui::PushItemWidth(100.0f);
         if (ImGui::InputFloat("##vx", &bodyOrbit->vx0)) { orbitReset = true; }ImGui::SameLine(0.0f); ImGui::Text("AU");
-        ImGui::Text("vy0: "); ImGui::SameLine(); ImGui::PushItemWidth(100.0f);
+        ImGui::Text("vy0: "); ImGui::SameLine(0.0f, 12.0f); ImGui::PushItemWidth(100.0f);
         if (ImGui::InputFloat("##vy", &bodyOrbit->vy0)) { orbitReset = true; }ImGui::SameLine(0.0f); ImGui::Text("AU");
-
-        // Configure Star Mass
-
-        // Configureing Body Mass
-        //ImGui::Text("Mass Multipler: "); ImGui::SameLine(); //ImGui::PushItemWidth(100.0f);
-        //if (ImGui::InputFloat("##MassMultiplier", &massMultiplier, 0.0f,0.0f,"%.2f")) { 
-        //    if (!(massMultiplier <= 0.0f)) { 
-        //        //*newMass *= massMultiplier; 
-        //        bodyOrbit->body->mass *= massMultiplier;
-        //    }
-        //}
-      
-
+        // Star Mass
+        ImGui::Text("Star Mass: "); ImGui::SameLine(); ImGui::PushItemWidth(70.0f);
+        if (ImGui::InputFloat("##starMass", &bodyOrbit->starMass)) {
+            if (bodyOrbit->starMass <= 0.0f) { bodyOrbit->starMass = 1.0f; }
+        }ImGui::SameLine(0.0f); ImGui::Text("Solar");
+        // Body Mass - in micro solar masses
+        ImGui::Text("Body Mass: "); ImGui::SameLine(); ImGui::PushItemWidth(70.0f);
+        if (ImGui::InputFloat("##bodyMass", &bodyMass)) {
+            if (bodyMass <= 0.0f) { bodyMass = 1.0f; }
+            bodyOrbit->body->mass = bodyMass * 1e-6f;
+        }ImGui::SameLine(0.0f); ImGui::Text("Micro Solar");
 
     } ImGui::End(); ImGui::PopStyleColor(); ImGui::PopStyleColor();
 }
@@ -276,7 +291,7 @@ void UI::EnergyPlot(bool &pauseUniverse)
         static float y_max = std::max(rdata1.Data[0].y, rdata2.Data[0].y) * 2.0f;
         //Plot Setup
         ImPlot::SetupLegend(ImPlotLocation_SouthEast);
-        ImPlot::SetupAxes("Time (Years)", "Energy (Joules)", flags, flags);
+        ImPlot::SetupAxes("Time (Years)", "Energy (Ms*AU^2*yr^-2)", flags, flags);
         ImPlot::SetupAxisLimits(ImAxis_X1, 0, *UniverseTime/2.0f, ImGuiCond_Always);
         // Determine realtime y limits
         if (abs(y_min) < y_max){y_min = y_max;} 

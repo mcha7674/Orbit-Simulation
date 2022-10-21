@@ -14,3 +14,4 @@
 
 #include "GLCore/Core/Application.h"
 #include "GLCore/Core/KeyCodes.h"
+#include "GLCore/Core/MouseButtonCodes.h"

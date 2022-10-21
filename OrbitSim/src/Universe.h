@@ -21,7 +21,7 @@ public:
 	virtual void OnImGuiRender() override;
 private:
 	////////// Universe OBJECTS //////////
-	Body *Sun;
+	Body *star;
 	Orbit *orbit;
 	////////// Universe Helper Functions //////////
 	void InitUniverse();
@@ -29,6 +29,7 @@ private:
 	void PauseUniverse();
 	void ResetOrbits();
 	void detectCollision(const float &orbitR, const float& body1R, const float& body2R, const float& scale);	
+	void transformMousePos();
 	////////// Universe Time Variables //////////
 	float UniverseTime;
 	float dt;

@@ -9,19 +9,22 @@
 
 // UNIVERSAL CONSTANTS
 #define PI static_cast<float>(3.14159265)
-static const float G_M = 4 * PI * PI; // G * sunMass constant
-static const float sunMass = 1.989e30; // in kg
-static const float earthMass = 3.00273e-6; // in Solar Masses
+//static const float G_M = 4 * PI * PI; // G * sunMass constant
+//static const float sunMass = 1.989e30; // in kg
+
+const float earthMass = 3.00273e-6; // in Solar Masses
+const float G = 39.478; // AU^3yr^-2Ms^-1
 // Force Constant predicted by General Relativity
 #define ALPHA_FACTOR static_cast<float>(1.1e-8) // AU^2 - correction factor as predected by general relativity
-#define FCONST(m,r,B) static_cast<float>(( (G_M * m) / pow(r, B + 1.0f) ) * (1+ (ALPHA_FACTOR/pow(r,2))))
+#define FCONST(M,m,r,B) static_cast<float>(( (G * M * m) / pow(r, B + 1.0f) ) * (1+ (ALPHA_FACTOR/pow(r,2))))
 
 class Orbit
 {
 public:
-    // Body and Body Trail
+    // Body, its star's mass, and Body Trail
     Body* body;
     Trail* bodyTrail;
+    float starMass; // in Solar Mass units
     // Position vars (AU units)
     float x0;
     float y0;
@@ -63,7 +66,7 @@ public:
     unsigned int iterations = 0;
 public:
     // PARAMETERIZED CONSTRUCTOR
-    Orbit(float bodyRadius, float bodyMass, float initx, float inity, float initvx,
+    Orbit(float starMass, float bodyRadius, float bodyMass, float initx, float inity, float initvx,
         float initvy, float beta, float t, float dt);
     // DATA CREATION
     void Update(float t, float dt, bool rkIntegration = false);

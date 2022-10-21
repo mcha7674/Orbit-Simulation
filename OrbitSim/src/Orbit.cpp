@@ -2,8 +2,8 @@
 
 
 // Constructor Initializes all attribute vars
-Orbit::Orbit(float bodyRadius,float bodyMass, float initx, float inity, float initvx, float initvy, float beta, float t, float dt)
-    : body(body), x{ initx }, y{ inity }, vx{ initvx }, vy{ initvy }, B{ beta }, t(t), dt(dt)
+Orbit::Orbit(float starMass, float bodyRadius,float bodyMass, float initx, float inity, float initvx, float initvy, float beta, float t, float dt)
+    : starMass(starMass), body(body), x{ initx }, y{ inity }, vx{ initvx }, vy{ initvy }, B{ beta }, t(t), dt(dt)
 {
     // Init Body
     body = new Body(bodyRadius, bodyMass);
@@ -19,11 +19,11 @@ Orbit::Orbit(float bodyRadius,float bodyMass, float initx, float inity, float in
     v = sqrt(vx * vx + vy * vy); // magnitude of initial velocity
     v0 = v; // set initial var variable
     // Initialize the force (magnitude)
-    fx = FCONST(body->mass, r, B) * x;
-    fy = FCONST(body->mass, r, B) * y;
+    fx = FCONST(starMass, body->mass,r,B) * x;
+    fy = FCONST(starMass, body->mass,r,B) * y;
     f = sqrt(fx * fx + fy * fy);
     // Energy Inits
-    PE = -1 * (G_M * body->mass) / r;
+    PE = -1 * (G*starMass * body->mass) / r;
     //PE *= 1e6; 
     KE = 0.5 * body->mass * pow(v, 2);
     //KE *= 1e6;
@@ -58,8 +58,8 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
         v_minus1 = v;
 
         // updating the force
-        fx = FCONST(body->mass,r,B) * x;
-        fy = FCONST(body->mass, r, B) * y;
+        fx = FCONST(starMass, body->mass,r,B) * x;
+        fy = FCONST(starMass, body->mass,r,B) * y;
         f = sqrt(fx * fx + fy * fy);
         // updating velocity
         vx = vx - (fx / body->mass) * dt;
@@ -70,7 +70,7 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
         y = y + (vy * dt);
         r = sqrt(x * x + y * y);
         // Update Energy
-        PE = -1 * (G_M * body->mass) / r;
+        PE = -1 * (G*starMass * body->mass) / r;
         //PE *= 1e6;
         KE = 0.5 * body->mass * pow(v, 2);
         //KE *= 1e6;
@@ -83,27 +83,27 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
         ////k2 - acceleration 0.5 timesteps in the future based on k1 acceleration value
         float vx_u = PartialStep(vx, k1x, 0.5f);
         float x_u = PartialStep(x, vx_u, 0.5f);
-        float k2x = -FCONST(body->mass, r, B) * x_u;
+        float k2x = -FCONST(starMass, body->mass,r,B) * x_u;
 
         float vy_u = PartialStep(vy, k1y, 0.5f);
         float y_u = PartialStep(y, vy_u, 0.5f);
-        float k2y = -FCONST(body->mass, r, B) * y_u;
+        float k2y = -FCONST(starMass, body->mass,r,B) * y_u;
         ////k3 acceleration 0.5 timesteps in the future using k2 acceleration
         vx_u = PartialStep(vx, k2x, 0.5f);
         x_u = PartialStep(x, vx_u, 0.5f);
-        float k3x = -FCONST(body->mass, r, B) * x_u;
+        float k3x = -FCONST(starMass, body->mass,r,B) * x_u;
 
         vy_u = PartialStep(vy, k2y, 0.5f);
         y_u = PartialStep(y, vy_u, 0.5f);
-        float k3y = -FCONST(body->mass, r, B) * y_u;
+        float k3y = -FCONST(starMass, body->mass,r,B) * y_u;
         ////k4 - location 1 timestep in the future using k3 acceleration
         vx_u = PartialStep(vx, k3x, 1.0f);
         x_u = PartialStep(x, vx_u, 1.0f);
-        float k4x = -FCONST(body->mass, r, B) * x_u;
+        float k4x = -FCONST(starMass, body->mass,r,B) * x_u;
 
         vy_u = PartialStep(vy, k3y, 1.0f);
         y_u = PartialStep(y, vy_u, 1.0f);
-        float k4y = -FCONST(body->mass, r, B) * y_u;
+        float k4y = -FCONST(starMass, body->mass,r,B) * y_u;
 
 
         // Final Accelerations, Velocities and Postions
@@ -116,8 +116,8 @@ void Orbit::Update(float universeTime, float deltaTime, bool rkIntegration)
         x += vx * dt;
         y += vy * dt;
         r = sqrt(x * x + y * y);
-        fx = FCONST(body->mass, r, B) * x;
-        fy = FCONST(body->mass, r, B) * y;
+        fx = FCONST(starMass, body->mass,r,B) * x;
+        fy = FCONST(starMass, body->mass,r,B) * y;
         f = sqrt(fx * fx + fy * fy);
     }
     
@@ -167,15 +167,15 @@ void Orbit::Reset()
     iterations = 0;
     
     // ReInitialize the force (magnitude)
-    fx = FCONST(body->mass, r, B);
-    fy = FCONST(body->mass, r, B);
+    fx = FCONST(starMass, body->mass,r,B);
+    fy = FCONST(starMass, body->mass,r,B);
     f = sqrt(fx * fx + fy * fy);
 
     // Energy Reinits
-    PE = -1 * (G_M * body->mass) / r;
-    PE *= 1e6; // micro jjoules
+    PE = -1 * (G*starMass * body->mass) / r;
+    //PE *= 1e6; // micro jjoules
     KE = 0.5 * body->mass * pow(v, 2);
-    KE *= 1e6;
+    //KE *= 1e6;
     E = KE + PE;
     
 
