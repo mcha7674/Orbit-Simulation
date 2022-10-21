@@ -2,14 +2,19 @@
 
 
 // Constructor Initializes all attribute vars
-Orbit::Orbit(Body *body, float initx, float inity, float initvx, float initvy, float beta, float t, float dt)
+Orbit::Orbit(float bodyRadius,float bodyMass, float initx, float inity, float initvx, float initvy, float beta, float t, float dt)
     : body(body), x{ initx }, y{ inity }, vx{ initvx }, vy{ initvy }, B{ beta }, t(t), dt(dt)
 {
+    // Init Body
+    body = new Body(bodyRadius, bodyMass);
+    // Init Trail On Heap
+    bodyTrail = new Trail();
+    // Init Orbit Parameters
     x0 = x;
     y0 = y;
     vx0 = vx;
     vy0 = vy;
-    // initialize magnitudes:
+    // initialize vector magnitudes:
     r = sqrt(x * x + y * y);     // magnitude of initial position
     v = sqrt(vx * vx + vy * vy); // magnitude of initial velocity
     v0 = v; // set initial var variable
@@ -19,9 +24,9 @@ Orbit::Orbit(Body *body, float initx, float inity, float initvx, float initvy, f
     f = sqrt(fx * fx + fy * fy);
     // Energy Inits
     PE = -1 * (G_M * body->mass) / r;
-    PE *= 1e6; // micro jjoules
+    //PE *= 1e6; 
     KE = 0.5 * body->mass * pow(v, 2);
-    KE *= 1e6;
+    //KE *= 1e6;
     E = KE + PE;
 
     // calculate Theoretical Statistics (period, aphelion, perihelion)
@@ -31,7 +36,6 @@ Orbit::Orbit(Body *body, float initx, float inity, float initvx, float initvy, f
     perihelionReached = false;
     period = FLT_MAX;
     finishedPeriod = false;
-    finishedHalfPeriod = false;
 
     std::cout << "ORBIT INITIALIZED" << std::endl;
 }
@@ -153,17 +157,14 @@ void Orbit::Reset()
     v0 = v;
 
     t = 0.0f;
-    finishedHalfPeriod = false;
     finishedPeriod = false;
     aphelionReached = false;
     perihelionReached = false;
     aphelion = NULL;
     perihelion = NULL;
     period = FLT_MAX;
-    periodCycles = 0;
 
     iterations = 0;
-    itersTo1Period = MAXUINT;
     
     // ReInitialize the force (magnitude)
     fx = FCONST(body->mass, r, B);

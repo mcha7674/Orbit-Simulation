@@ -5,7 +5,9 @@
 #include <functional>
 using namespace GLCore;
 
-int scientificDivCount(float* og_num);
+int scientificDivCount(float &og_num);
+int scientificMultCount(float& og_num);
+
 
 class UI
 {
@@ -25,6 +27,9 @@ public:
 
 	// Getters
 	inline ImGuiIO& GetIO() { return *io; }
+	
+	// Public Vars
+	float* newMass;
 private:
 	ImGuiIO* io;
 	ImGuiStyle* style;
@@ -38,6 +43,7 @@ private:
 	float* TimeStep;
 	GLCore::Utils::OrthographicCameraController *m_CameraController;
 	Orbit* bodyOrbit;
+	
 };
 
 

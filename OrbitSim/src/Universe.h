@@ -2,9 +2,8 @@
 
 //#include <GLCoreUtils.h> // Orbit.h includes this
 //#include "Body.h" // Orbit.h Includes this
-//#include <GLAbstraction.h> // Trail.h Includes this
+//#include <GLAbstraction.h> // Trail.h Includes this in orbit.h
 #include "Orbit.h"
-#include "Trail.h"
 #include <GLCore.h>
 #include "UI.h"
 
@@ -23,9 +22,7 @@ public:
 private:
 	////////// Universe OBJECTS //////////
 	Body *Sun;
-	Body *body;
 	Orbit *orbit;
-	Trail* trail;
 	////////// Universe Helper Functions //////////
 	void InitUniverse();
 	void PhysicsLoop();

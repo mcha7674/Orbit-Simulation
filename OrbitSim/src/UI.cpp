@@ -1,5 +1,6 @@
 #include "UI.h"
 
+static float massMultiplier = 1.0f;
 
 UI::UI(float* UniverseTime, float* TimeStep, GLCore::Utils::OrthographicCameraController* m_CameraController, Orbit* bodyOrbit)
 	:UniverseTime(UniverseTime), TimeStep(TimeStep), m_CameraController(m_CameraController), bodyOrbit(bodyOrbit)
@@ -11,6 +12,8 @@ UI::UI(float* UniverseTime, float* TimeStep, GLCore::Utils::OrthographicCameraCo
 
     InitImGuiGlobalStyling();
     UpdateWorkSize();
+
+    newMass = new float(earthMass);
 }
 
 void UI::UpdateWorkSize()
@@ -131,6 +134,7 @@ void UI::ButtonOverlay(bool &orbitReset, bool &showEnergyPlot)
 void UI::StatsOverlay()
 {
     static int corner = 0;
+    static float windowScale = 1.3;
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     if (corner != -1) {
         const float PAD = 15.0f;
@@ -146,39 +150,49 @@ void UI::StatsOverlay()
     ImGui::SetNextWindowBgAlpha(0.02f); // Transparent background
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(189, 204, 242, 1));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1, 1, 1, 1));
-    ImGui::SetNextWindowSize(ImVec2(235, 160));
+    ImGui::SetNextWindowSize(ImVec2(240, 170));
     if (ImGui::Begin("Body Stats", NULL, window_flags)) {
         // Set This Condition to prevent key interactiong with sim
         // Window Settings
-        ImGui::SetWindowFontScale(1.5f);
+        ImGui::SetWindowFontScale(windowScale);
         // Orbit Stats //
         ImGui::Text("   Body Statistics");
         ImGui::Separator();
         ImGui::Text("r: %f AU", bodyOrbit->r);
         ImGui::Text("v: %f AU/yr", bodyOrbit->v);
             
-        static int E_expCount = scientificDivCount(&bodyOrbit->E);
-        static int KE_expCount = scientificDivCount(&bodyOrbit->KE);
-        static int PE_expCount = scientificDivCount(&bodyOrbit->PE);
+        static int E_expCount = scientificDivCount(bodyOrbit->E);
+        static int KE_expCount = scientificDivCount(bodyOrbit->KE);
+        static int PE_expCount = scientificDivCount(bodyOrbit->PE);
         ImGui::Text("E: %.1f+e%i J", bodyOrbit->E/pow(10,E_expCount), E_expCount);
         ImGui::Text("KE: %.1f+e%i J", bodyOrbit->KE/pow(10,KE_expCount), KE_expCount);
         ImGui::Text("PE: %.1f+e%i J", bodyOrbit->PE/pow(10,PE_expCount), PE_expCount);
-        ImGui::NewLine();
+        // MASS OUTPUT
+        static int M_expCount = 0;
+        if (bodyOrbit->body->mass > 1) { 
+            M_expCount = scientificDivCount(bodyOrbit->body->mass); 
+            ImGui::Text("Mass: %.1f+e%i Solar",bodyOrbit->body->mass/pow(10,M_expCount), M_expCount);
+        } else { 
+            M_expCount = scientificMultCount(bodyOrbit->body->mass); 
+            ImGui::Text("Mass: %.1f-e%i Solar", bodyOrbit->body->mass * pow(10, M_expCount), M_expCount);
+        }
+        
     } ImGui::End(); ImGui::PopStyleColor(); ImGui::PopStyleColor();
 }
 
 
 void UI::InputsOverlay(bool &orbitReset)
 {
+    static float windowScale = 1.3;
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     ImGui::SetNextWindowBgAlpha(0.02f); // Transparent background
-    ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) * 0.0f + 15.0f, work_pos.y + 185.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
+    ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) * 0.0f + 15.0f, work_pos.y + 195.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(189, 204, 242, 1));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1, 1, 1, 1));
     ImGui::SetItemDefaultFocus();
     if (ImGui::Begin("Body Inputs", NULL, window_flags)) {
         // Set This Condition to prevent key interactiong with sim
-        ImGui::SetWindowFontScale(1.5f);
+        ImGui::SetWindowFontScale(windowScale);
         // INPUTS //
         ImGui::Text("       Inputs");
         ImGui::Separator();
@@ -198,6 +212,20 @@ void UI::InputsOverlay(bool &orbitReset)
         if (ImGui::InputFloat("##vx", &bodyOrbit->vx0)) { orbitReset = true; }ImGui::SameLine(0.0f); ImGui::Text("AU");
         ImGui::Text("vy0: "); ImGui::SameLine(); ImGui::PushItemWidth(100.0f);
         if (ImGui::InputFloat("##vy", &bodyOrbit->vy0)) { orbitReset = true; }ImGui::SameLine(0.0f); ImGui::Text("AU");
+
+        // Configure Star Mass
+
+        // Configureing Body Mass
+        //ImGui::Text("Mass Multipler: "); ImGui::SameLine(); //ImGui::PushItemWidth(100.0f);
+        //if (ImGui::InputFloat("##MassMultiplier", &massMultiplier, 0.0f,0.0f,"%.2f")) { 
+        //    if (!(massMultiplier <= 0.0f)) { 
+        //        //*newMass *= massMultiplier; 
+        //        bodyOrbit->body->mass *= massMultiplier;
+        //    }
+        //}
+      
+
+
     } ImGui::End(); ImGui::PopStyleColor(); ImGui::PopStyleColor();
 }
 
@@ -264,13 +292,28 @@ void UI::EnergyPlot(bool &pauseUniverse)
 
 
 /////////////// NON-MEMBER HELPER FUNCTIONS /////////////
-int scientificDivCount(float* og_num)
-{
-    float num = *og_num;
+
+
+int scientificDivCount(float &og_num)
+{   // number must be greater than 1
+    float num = og_num;
     int count = 0;
-    while (((int)num)/100 != 0 )
+    while ((static_cast<int>(num)) / 10 != 0)
     {
         num /= 10;
+        count++;
+    }
+    return count;
+
+}
+
+int scientificMultCount(float& og_num)
+{   // number must be less than 1
+    float num = og_num;
+    int count = 0;
+    while (static_cast<int>(num) == 0)
+    {
+        num *= 10;
         count++;
     }
     return count;
