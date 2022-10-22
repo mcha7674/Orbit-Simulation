@@ -18,7 +18,7 @@ public:
 	void InitImGuiGlobalStyling();
 	void TimeOverlay();
 	void fastForwardOverlay(uint16_t& fastForward, int& fastForwardActive);
-	void ButtonOverlay(bool& orbitReset, bool& showEnergyPlot);
+	void ButtonOverlay(bool& orbitReset, bool& showEnergyPlot, bool& trailReset);
 	void StatsOverlay();
 	void InputsOverlay(bool& orbitReset);
 	void PauseMenu();

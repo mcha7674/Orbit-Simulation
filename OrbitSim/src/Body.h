@@ -1,5 +1,5 @@
 #pragma once
-#include "Base_Models/Model.h"
+#include "Base_Models/Circle.h"
 
 struct Body: public Circle
 {
@@ -8,10 +8,11 @@ struct Body: public Circle
 
     virtual void setColor(float r, float g, float b, float a) override;
     void setAlpha(const float alphaVal);
+    void setTexture(const char* texturePath);
 
     glm::vec4 circleColor;
     Transform body_Transform;
-    //Texture *texture;
+    Texture *texture;
 
     float mass; // in solar masses
     float radius; // In Sun Radii

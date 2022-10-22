@@ -96,7 +96,7 @@ void UI::fastForwardOverlay(uint16_t &fastForward, int &fastForwardActive)
 }
 
 
-void UI::ButtonOverlay(bool &orbitReset, bool &showEnergyPlot)
+void UI::ButtonOverlay(bool &orbitReset, bool &showEnergyPlot, bool &trailReset)
 {
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     static float fontScale = 1.5f;
@@ -108,15 +108,21 @@ void UI::ButtonOverlay(bool &orbitReset, bool &showEnergyPlot)
         ImGui::SetWindowFontScale(fontScale);
         if (ImGui::Button("Reset Orbit")) { orbitReset = true; }  
     }ImGui::End(); 
+    ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - 15.0f, work_pos.y + 50.0f + topPadding), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowBgAlpha(0.0f);
+    if (ImGui::Begin("TrailReset", NULL, window_flags)) {
+        ImGui::SetWindowFontScale(fontScale);
+        if (ImGui::Button("Reset Trail")) { trailReset = true; }
+    }ImGui::End();
     // Center Cam Button
-    ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - 25.0f, work_pos.y + 50.0f+ topPadding), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - 25.0f, work_pos.y + 85.0f+ topPadding), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     if (ImGui::Begin("CenterCam", NULL, window_flags)){
         ImGui::SetWindowFontScale(fontScale);
         if (ImGui::Button("Center Cam")) { m_CameraController->ResetCamera(); }
     } ImGui::End();
     // Show Plot CheckBox Button
-    ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - 7.0f, work_pos.y  + 90.0f + topPadding), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowPos(ImVec2(work_pos.x + work_size.x - 7.0f, work_pos.y  + 125.0f + topPadding), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowBgAlpha(0.0f); // Transparent background
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(1.0f, 1.0f, 1.0f, 0.15));
     ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(255.0f, 255.0f, 255.0f, 0.5));
@@ -151,7 +157,7 @@ void UI::StatsOverlay()
     ImGui::SetNextWindowBgAlpha(0.02f); // Transparent background
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(189, 204, 242, 1));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1, 1, 1, 1));
-    ImGui::SetNextWindowSize(ImVec2(240, 180));
+    ImGui::SetNextWindowSize(ImVec2(260, 220));
     if (ImGui::Begin("Stats", NULL, window_flags)) {
         // Set This Condition to prevent key interactiong with sim
         // Window Settings
@@ -159,34 +165,42 @@ void UI::StatsOverlay()
         // Orbit Stats //
         ImGui::Text("Statistics");
         ImGui::Separator();
-        ImGui::Text("r: %f AU", bodyOrbit->r);
-        ImGui::Text("v: %f AU/yr", bodyOrbit->v);
-        ImGui::Text("(vx,vy): (%.3f, %.3f)", bodyOrbit->vx, bodyOrbit->vy);
+        ImGui::Text("r: %.4f AU", bodyOrbit->r);
+        ImGui::Dummy(ImVec2(0.0,5.0f));
+        ImGui::Text("v: %.2f AU/yr", bodyOrbit->v); ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(2.0f, 2.0f, 2.0f, 0.3f));
+        if (ImGui::Button("- v")) { bodyOrbit->vx *= 0.9f; bodyOrbit->vy *= 0.9f; } ImGui::SameLine();
+        if (ImGui::Button("v +")) { bodyOrbit->vx *= 1.1f; bodyOrbit->vy *= 1.1f; }
+        ImGui::PopStyleColor();
+        ImGui::Dummy(ImVec2(0.0, 0.5f));
+        ImGui::Text("(vx,vy): (%.2f, %.2f)", bodyOrbit->vx, bodyOrbit->vy);
+        ImGui::Dummy(ImVec2(0.0, 5.0f));
         static int E_expCount = 0;
         static int KE_expCount = 0;
         static int PE_expCount = 0;
         if (bodyOrbit->E < 1) { 
             E_expCount = scientificMultCount(bodyOrbit->E); 
-            ImGui::Text("E: %.1fe-%i", bodyOrbit->E * pow(10, E_expCount), E_expCount);
+            ImGui::Text("E: %.4fe-%i", bodyOrbit->E * pow(10, E_expCount), E_expCount);
         }
         else{ 
-            ImGui::Text("E: %.1f", bodyOrbit->E);
+            ImGui::Text("E: %.4f", bodyOrbit->E);
         }
         if (bodyOrbit->KE < 1) { 
             KE_expCount = scientificMultCount(bodyOrbit->KE);
-            ImGui::Text("KE: %.1fe-%i", bodyOrbit->KE * pow(10, KE_expCount), KE_expCount);
+            ImGui::Text("KE: %.4fe-%i", bodyOrbit->KE * pow(10, KE_expCount), KE_expCount);
         }
         else { 
-            ImGui::Text("KE: %.1f", bodyOrbit->KE );
+            ImGui::Text("KE: %.4f", bodyOrbit->KE );
         }
         if (bodyOrbit->PE < 1) { 
             PE_expCount = scientificMultCount(bodyOrbit->PE);
-            ImGui::Text("PE: %.1fe-%i", bodyOrbit->PE * pow(10, PE_expCount), PE_expCount);
+            ImGui::Text("PE: %.4fe-%i", bodyOrbit->PE * pow(10, PE_expCount), PE_expCount);
         }
         else { 
-            ImGui::Text("PE: %.1f", bodyOrbit->PE);
+            ImGui::Text("PE: %.4f", bodyOrbit->PE);
         }
         // Body MASS OUTPUT //
+        ImGui::Dummy(ImVec2(0.0, 5.0f));
         static int M_expCount = 0;
         if (bodyOrbit->body->mass > 1) { 
             M_expCount = scientificDivCount(bodyOrbit->body->mass); 
@@ -204,7 +218,7 @@ void UI::InputsOverlay(bool &orbitReset)
     static float windowScale = 1.3;
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     ImGui::SetNextWindowBgAlpha(0.02f); // Transparent background
-    ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) * 0.0f + 15.0f, work_pos.y + 205.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
+    ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) * 0.0f + 15.0f, work_pos.y + 250.0f), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(189, 204, 242, 1));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1, 1, 1, 1));
     if (ImGui::Begin("Body Inputs", NULL, window_flags)) {
@@ -226,9 +240,9 @@ void UI::InputsOverlay(bool &orbitReset)
         if (ImGui::InputFloat("##y0", &bodyOrbit->y0)) { orbitReset = true; }ImGui::SameLine(0.0f); ImGui::Text("AU");
         // Velocity Toggles //
         ImGui::Text("vx0: "); ImGui::SameLine(0.0f,12.0f); ImGui::PushItemWidth(100.0f);
-        if (ImGui::InputFloat("##vx", &bodyOrbit->vx0)) { orbitReset = true; }ImGui::SameLine(0.0f); ImGui::Text("AU");
+        if (ImGui::InputFloat("##vx", &bodyOrbit->vx0)) { orbitReset = true; }ImGui::SameLine(0.0f); ImGui::Text("AU/Yr");
         ImGui::Text("vy0: "); ImGui::SameLine(0.0f, 12.0f); ImGui::PushItemWidth(100.0f);
-        if (ImGui::InputFloat("##vy", &bodyOrbit->vy0)) { orbitReset = true; }ImGui::SameLine(0.0f); ImGui::Text("AU");
+        if (ImGui::InputFloat("##vy", &bodyOrbit->vy0)) { orbitReset = true; }ImGui::SameLine(0.0f); ImGui::Text("AU/Yr");
         // Star Mass
         ImGui::Text("Star Mass: "); ImGui::SameLine(); ImGui::PushItemWidth(70.0f);
         if (ImGui::InputFloat("##starMass", &bodyOrbit->starMass)) {
@@ -240,6 +254,7 @@ void UI::InputsOverlay(bool &orbitReset)
             if (bodyMass <= 0.0f) { bodyMass = 1.0f; }
             bodyOrbit->body->mass = bodyMass * 1e-6f;
         }ImGui::SameLine(0.0f); ImGui::Text("Micro Solar");
+        
 
     } ImGui::End(); ImGui::PopStyleColor(); ImGui::PopStyleColor();
 }
@@ -292,7 +307,7 @@ void UI::EnergyPlot(bool &pauseUniverse)
         //Plot Setup
         ImPlot::SetupLegend(ImPlotLocation_SouthEast);
         ImPlot::SetupAxes("Time (Years)", "Energy (Ms*AU^2*yr^-2)", flags, flags);
-        ImPlot::SetupAxisLimits(ImAxis_X1, 0, *UniverseTime/2.0f, ImGuiCond_Always);
+        ImPlot::SetupAxisLimits(ImAxis_X1, 0, *UniverseTime*0.7, ImGuiCond_Always);
         // Determine realtime y limits
         if (abs(y_min) < y_max){y_min = y_max;} 
         else if (abs(y_min) > y_max){y_max = abs(y_min);}

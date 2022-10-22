@@ -3,6 +3,7 @@
 Body::Body(float rad,float m, unsigned int numSides)
 	:radius(rad), mass(m)
 {
+	texture = nullptr;
 	NumberOfSides = numSides;
 	// Create The Circle vertices
 	InitCircle(NumberOfSides, radius);
@@ -25,12 +26,12 @@ void Body::setAlpha(const float alphaVal)
 	
 }
 
-//void Body::setTexture(const char* texturePath)
-//{
-//	texture = new Texture(texturePath);
-//	Circle_shader->use();
-//	Circle_shader->SetUniform1i("enableTexture", 1); // 2nd arg is the slot number
-//	Circle_shader->SetUniform1i("texture", 0); // 2nd arg is the slot number
-//}
+void Body::setTexture(const char* texturePath)
+{
+	texture = new Texture(texturePath);
+	Circle_shader->use();
+	Circle_shader->SetUniform1i("enableTexture", 1); // 2nd arg is the slot number
+	Circle_shader->SetUniform1i("texture", 0); // 2nd arg is the slot number
+}
 
 

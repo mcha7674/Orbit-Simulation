@@ -29,6 +29,7 @@ private:
 	void PauseUniverse();
 	void ResetOrbits();
 	void detectCollision(const float &orbitR, const float& body1R, const float& body2R, const float& scale);	
+	bool isMouseOnBody(const float& orbitRX, const float& orbitRY, const float& bodyR, const float& scale);
 	void transformMousePos();
 	////////// Universe Time Variables //////////
 	float UniverseTime;

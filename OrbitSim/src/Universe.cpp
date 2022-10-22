@@ -7,7 +7,8 @@ static float mouseXpos = 0.0f;
 static float mouseYpos = 0.0f;
 static float mouseXpos_Save = 0.0f;
 static float mouseYpos_Save = 0.0f;
-static float velocityDragWeight = 10.0f;
+static float velocityDragWeight = 20.0f;
+static float bodyScaling = 0.4f;
 static bool isPauseUniverse = false;
 static bool bodyCrashed = false;
 static bool showEnergyPlot = true;
@@ -106,38 +107,49 @@ void Universe::OnEvent(Event& event)
                 // Get Mouse Positions
                 mouseXpos = mme.GetX();
                 mouseYpos = mme.GetY();
-                // Mouse Coordinate Transformation
+                // Mouse Coordinate Transformation (update mouseXpos and mouseYpos to NDC)
                 transformMousePos();
+                std::cout << orbit->vx0 << ", " << orbit->vy0 << std::endl;
                 return true;
             });
+        // Save Mouse Positions Once any mouse button is pressed
         dispatcher.Dispatch<MouseButtonPressedEvent>(
             [&](MouseButtonPressedEvent& mbe) {
                 mouseXpos_Save = mouseXpos;
                 mouseYpos_Save = mouseYpos;
+                
                 return true;
             });
         dispatcher.Dispatch<MouseButtonReleasedEvent>(
             [&](MouseButtonReleasedEvent& mbe) {
                 if (mbe.GetMouseButton() == MOUSE_BUTTON_RIGHT)
                 {
-                    // Drag Magnitude calculation for velocity
-                    float vxMag = mouseXpos - mouseXpos_Save;
-                    float vyMag = mouseYpos - mouseYpos_Save;
-                    vxMag *= velocityDragWeight;
-                    vyMag *= velocityDragWeight;
-                    // Update Velocities
-                    orbit->vx0 = vxMag;
-                    orbit->vy0 = vyMag;
-                    orbit->v0 = sqrt(vxMag * vxMag + vyMag * vyMag);
-                    orbit->vx = orbit->vx0;
-                    orbit->vy = orbit->vy0;
-                    orbit->v = orbit->v0;
+                    // Only Make Calculations if initial mouse click is on the body
+                    if (isMouseOnBody(orbit->x, orbit->y, orbit->body->radius, bodyScaling)){
+                        //std::cout << "mouse on Body" << std::endl;
+                        // Drag Magnitude calculation for velocity
+                        float vxMag = (mouseXpos - mouseXpos_Save) * velocityDragWeight;
+                        float vyMag = (mouseYpos - mouseYpos_Save) * velocityDragWeight;
+                        /*float newVx = vxMag + orbit->vx;
+                        float newVy = vyMag + orbit->vy;*/
+                        float newVx = vxMag;
+                        float newVy = vyMag;
+                        // Update Velocities
+                        orbit->vx0 = newVx;
+                        orbit->vy0 = newVy;
+                        orbit->v0 = sqrt((newVx * newVx) + (newVy * newVy));
+                        orbit->vx = orbit->vx0;
+                        orbit->vy = orbit->vy0;
+                        orbit->v = orbit->v0;
+                        std::cout << orbit->vx0 << ", " << orbit->vy0 << std::endl;
+                    }
+                    
                 }
                 return true;
             });
         // Mouse Click Body Positioning //
-        dispatcher.Dispatch<MouseButtonReleasedEvent>(
-            [&](MouseButtonReleasedEvent& mbe) {
+        dispatcher.Dispatch<MouseButtonPressedEvent>(
+            [&](MouseButtonPressedEvent& mbe) {
                 if (mbe.GetMouseButton() == MOUSE_BUTTON_LEFT)
                 {
                     // Set New Orbit Initial Positions to Mouse Position
@@ -207,8 +219,7 @@ void Universe::OnEvent(Event& event)
                 return true;
             });
     }
-    
-	
+    	
 }
 
 void Universe::transformMousePos()
@@ -224,6 +235,17 @@ void Universe::transformMousePos()
     // Adjust for camera Movement
     mouseXpos += m_CameraController.GetCamPos().x;
     mouseYpos += m_CameraController.GetCamPos().y;
+}
+
+bool Universe::isMouseOnBody(const float& orbitRX, const float& orbitRY, const float& bodyR, const float& scale)
+{    
+    // Approximate Body area to be a square to ease of calculation
+    if ( (mouseXpos_Save <= orbitRX+(bodyR*scale))  && (mouseXpos_Save >= orbitRX - (bodyR * scale)) 
+        && (mouseYpos_Save <= orbitRY + (bodyR * scale)) && (mouseYpos_Save >= orbitRY - (bodyR * scale)) )
+    {
+        return true;
+    }
+    return false;
 }
 
 void Universe::OnUpdate(Timestep ts)
@@ -257,11 +279,12 @@ void Universe::OnUpdate(Timestep ts)
 void Universe::OnImGuiRender()
 {
     static bool isOrbitReset = false;
+    static bool isTrailReset = false;
     universeUI->UpdateWorkSize(); // must include first to update the working viewport size and position
     // UI ELEMENTS //
     universeUI->TimeOverlay();
     universeUI->fastForwardOverlay(fastForward, fastForwardActive);
-    universeUI->ButtonOverlay(isOrbitReset, showEnergyPlot);
+    universeUI->ButtonOverlay(isOrbitReset, showEnergyPlot, isTrailReset);
     universeUI->StatsOverlay();
     universeUI->InputsOverlay(isOrbitReset);
     //if (isPauseUniverse && !bodyCrashed) { universeUI->PauseMenu(); }
@@ -269,6 +292,7 @@ void Universe::OnImGuiRender()
     if (showEnergyPlot) { universeUI->EnergyPlot(isPauseUniverse); }
     // END OF UI ELEMENTS //
     if (isOrbitReset) { ResetOrbits(); isOrbitReset = false; } 
+    if (isTrailReset) { orbit->ResetTrail(); isTrailReset = false; }
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -293,15 +317,11 @@ void Universe::InitUniverse()
 void Universe::PhysicsLoop()
 {
     // Transform Body Positions	
-    glm::vec3 newpos = glm::vec3(1.0f);
-    newpos.x = orbit->x;
-    newpos.y = orbit->y; // Correct for screen aspect ratio
+    glm::vec3 newpos = glm::vec3(orbit->x, orbit->y, 1.0f);
     orbit->body->body_Transform.setPosition(newpos);
 
     // Scale Bodies To see them better.
-    glm::vec3 newScale = glm::vec3(1.0f);
-    newScale.x = 0.4f;
-    newScale.y = newScale.x;
+    glm::vec3 newScale = glm::vec3(bodyScaling, bodyScaling, 1.0f);
     star->body_Transform.setScale(newScale);
     orbit->body->body_Transform.setScale(newScale);
 
@@ -319,7 +339,7 @@ void Universe::PhysicsLoop()
             orbit->bodyTrail->UpdateTrail(newpos.x, newpos.y, !orbit->finishedPeriod);
         
         // Collision Detection //
-        detectCollision(orbit->r, orbit->body->radius, star->radius, newScale.x);
+        detectCollision(orbit->r, orbit->body->radius, star->radius, bodyScaling);
 
     }
 }

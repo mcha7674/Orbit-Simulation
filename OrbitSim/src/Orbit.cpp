@@ -207,6 +207,10 @@ bool Orbit::isPerihelion(float v_minus1, float v)
     return false;
 }
 
+void Orbit::ResetTrail()
+{
+    bodyTrail->ResetVertices();
+}
 
 
 

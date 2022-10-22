@@ -71,6 +71,7 @@ public:
     // DATA CREATION
     void Update(float t, float dt, bool rkIntegration = false);
     void Reset();
+    void ResetTrail();
 
     bool isAphelion(float v0, float v);
     bool isPerihelion(float v0, float v);
