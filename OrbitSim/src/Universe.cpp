@@ -21,14 +21,14 @@ Universe::Universe()
 	// Initiate the star-Body Universe
     InitUniverse();    
     // Initiate star-Body Universe UI
-    universeUI = new UI(&UniverseTime, &dt, &m_CameraController, orbit);
+    universeUI = new UI(&UniverseTime, &dt, &m_CameraController, bodyOrbit);
 }
 
 Universe::~Universe()
 {
-	delete orbit->body;
+	delete bodyOrbit->body;
     delete star;
-    delete orbit;
+    delete bodyOrbit;
 }
 
 // Universe's gl prelims 
@@ -53,13 +53,6 @@ void Universe::OnAttach()
 
 void Universe::OnDetach()
 {
-    // Unbind and delete buffers
-    orbit->body->va.UnBind();
-    orbit->body->vb->UnBind();
-	star->va.UnBind();
-	star->vb->UnBind();
-    orbit->bodyTrail->va.UnBind();
-    orbit->bodyTrail->vb->UnBind();
 }
 
 // Event Handling layer
@@ -109,7 +102,7 @@ void Universe::OnEvent(Event& event)
                 mouseYpos = mme.GetY();
                 // Mouse Coordinate Transformation (update mouseXpos and mouseYpos to NDC)
                 transformMousePos();
-                std::cout << orbit->vx0 << ", " << orbit->vy0 << std::endl;
+                std::cout << bodyOrbit->vx0 << ", " << bodyOrbit->vy0 << std::endl;
                 return true;
             });
         // Save Mouse Positions Once any mouse button is pressed
@@ -125,23 +118,23 @@ void Universe::OnEvent(Event& event)
                 if (mbe.GetMouseButton() == MOUSE_BUTTON_RIGHT)
                 {
                     // Only Make Calculations if initial mouse click is on the body
-                    if (isMouseOnBody(orbit->x, orbit->y, orbit->body->radius, bodyScaling)){
+                    if (isMouseOnBody(bodyOrbit->x, bodyOrbit->y, bodyOrbit->body->radius, bodyScaling)){
                         //std::cout << "mouse on Body" << std::endl;
                         // Drag Magnitude calculation for velocity
                         float vxMag = (mouseXpos - mouseXpos_Save) * velocityDragWeight;
                         float vyMag = (mouseYpos - mouseYpos_Save) * velocityDragWeight;
-                        /*float newVx = vxMag + orbit->vx;
-                        float newVy = vyMag + orbit->vy;*/
+                        /*float newVx = vxMag + bodyOrbit->vx;
+                        float newVy = vyMag + bodyOrbit->vy;*/
                         float newVx = vxMag;
                         float newVy = vyMag;
                         // Update Velocities
-                        orbit->vx0 = newVx;
-                        orbit->vy0 = newVy;
-                        orbit->v0 = sqrt((newVx * newVx) + (newVy * newVy));
-                        orbit->vx = orbit->vx0;
-                        orbit->vy = orbit->vy0;
-                        orbit->v = orbit->v0;
-                        std::cout << orbit->vx0 << ", " << orbit->vy0 << std::endl;
+                        bodyOrbit->vx0 = newVx;
+                        bodyOrbit->vy0 = newVy;
+                        bodyOrbit->v0 = sqrt((newVx * newVx) + (newVy * newVy));
+                        bodyOrbit->vx = bodyOrbit->vx0;
+                        bodyOrbit->vy = bodyOrbit->vy0;
+                        bodyOrbit->v = bodyOrbit->v0;
+                        std::cout << bodyOrbit->vx0 << ", " << bodyOrbit->vy0 << std::endl;
                     }
                     
                 }
@@ -153,8 +146,8 @@ void Universe::OnEvent(Event& event)
                 if (mbe.GetMouseButton() == MOUSE_BUTTON_LEFT)
                 {
                     // Set New Orbit Initial Positions to Mouse Position
-                    orbit->x0 = mouseXpos_Save;
-                    orbit->y0 = mouseYpos_Save;
+                    bodyOrbit->x0 = mouseXpos_Save;
+                    bodyOrbit->y0 = mouseYpos_Save;
                     ResetOrbits();
                     return true;
                 }
@@ -254,18 +247,18 @@ void Universe::OnUpdate(Timestep ts)
     if (!isPauseUniverse || bodyCrashed) { 
         Application::Get().GetWindow().Clear();
         star->setAlpha(1.0f);
-        orbit->body->setAlpha(1.0f);
-        orbit->bodyTrail->setAlpha(0.7f);
+        bodyOrbit->body->setAlpha(1.0f);
+        bodyOrbit->bodyTrail->setAlpha(0.7f);
         //background->setColor(1.0f,1.0f,1.0f,1.0f);
     } else { PauseUniverse(); }
 
 	// Key/scroll Handling (cam controller update)
 	m_CameraController.OnUpdate(ts);
 	// set view matrix and orthographic matrix product Uniforms for all Bodies and Trails
-    orbit->body->Circle_shader->use();
-    orbit->body->Circle_shader->SetUniformMatrix4fv("viewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
-	orbit->bodyTrail->Trail_shader->use();
-    orbit->bodyTrail->Trail_shader->SetUniformMatrix4fv("viewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
+    bodyOrbit->body->Circle_shader->use();
+    bodyOrbit->body->Circle_shader->SetUniformMatrix4fv("viewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
+	bodyOrbit->bodyTrail->Trail_shader->use();
+    bodyOrbit->bodyTrail->Trail_shader->SetUniformMatrix4fv("viewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
 	star->Circle_shader->use();
 	star->Circle_shader->SetUniformMatrix4fv("viewProjection", m_CameraController.GetCamera().GetViewProjectionMatrix());
     
@@ -292,7 +285,7 @@ void Universe::OnImGuiRender()
     if (showEnergyPlot) { universeUI->EnergyPlot(isPauseUniverse); }
     // END OF UI ELEMENTS //
     if (isOrbitReset) { ResetOrbits(); isOrbitReset = false; } 
-    if (isTrailReset) { orbit->ResetTrail(); isTrailReset = false; }
+    if (isTrailReset) { bodyOrbit->ResetTrail(); isTrailReset = false; }
 }
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -306,40 +299,40 @@ void Universe::InitUniverse()
     // Objects
     star = new Body(1.0f,1.0f);
     // Orbit for Earth initially
-    orbit = new Orbit(star->mass, 0.1f,earthMass, 1.0f, 0.0f, 0.0f, 2*PI, 2.0f, UniverseTime, dt);
+    bodyOrbit = new Orbit(star->mass, 0.1f,earthMass, 1.0f, 0.0f, 0.0f, 2*PI, 2.0f, UniverseTime, dt);
 
     // Set Object Colors
-    orbit->body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
-    orbit->bodyTrail->setColor(glm::vec4{ 0.5f,0.4f,0.4f,0.7f});
+    bodyOrbit->body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
+    bodyOrbit->bodyTrail->setColor(glm::vec4{ 0.5f,0.4f,0.4f,0.7f});
     star->setColor(1.0f, 1.0f, 0.0f, 1.0f);
 }
 
 void Universe::PhysicsLoop()
 {
     // Transform Body Positions	
-    glm::vec3 newpos = glm::vec3(orbit->x, orbit->y, 1.0f);
-    orbit->body->body_Transform.setPosition(newpos);
+    glm::vec3 newpos = glm::vec3(bodyOrbit->x, bodyOrbit->y, 1.0f);
+    bodyOrbit->body->body_Transform.setPosition(newpos);
 
     // Scale Bodies To see them better.
     glm::vec3 newScale = glm::vec3(bodyScaling, bodyScaling, 1.0f);
     star->body_Transform.setScale(newScale);
-    orbit->body->body_Transform.setScale(newScale);
+    bodyOrbit->body->body_Transform.setScale(newScale);
 
     // Update Orbit
     for (uint16_t i = 0; i < fastForward; i++)
     {
-        orbit->Update(UniverseTime, dt);
+        bodyOrbit->Update(UniverseTime, dt);
         // Update Orbit Trail
-        newpos.x = orbit->x;
-        newpos.y = orbit->y;
+        newpos.x = bodyOrbit->x;
+        newpos.y = bodyOrbit->y;
         // Update Time Variable
         UniverseTime += dt;
         // update Trail in intervals
         if (i % 500 == 0)
-            orbit->bodyTrail->UpdateTrail(newpos.x, newpos.y, !orbit->finishedPeriod);
+            bodyOrbit->bodyTrail->UpdateTrail(newpos.x, newpos.y, !bodyOrbit->finishedPeriod);
         
         // Collision Detection //
-        detectCollision(orbit->r, orbit->body->radius, star->radius, bodyScaling);
+        detectCollision(bodyOrbit->r, bodyOrbit->body->radius, star->radius, bodyScaling);
 
     }
 }
@@ -357,24 +350,24 @@ void Universe::detectCollision(const float& orbitR, const float& body1R, const f
 void Universe::ResetOrbits()
 {
     UniverseTime = 0.0f;
-    orbit->Reset();
-    orbit->bodyTrail->ResetVertices();
+    bodyOrbit->Reset();
+    bodyOrbit->bodyTrail->ResetVertices();
 }
 
 void  Universe::PauseUniverse()
 {
     Application::Get().GetWindow().Clear(5.0f / 255.0f, 5.0f / 255.0f, 5.0f / 255.0f, 1.0f);
     /*star->setAlpha(0.5f);
-    orbit->body->setAlpha(0.5f);
-    orbit->bodyTrail->setAlpha(0.5f);*/
+    bodyOrbit->body->setAlpha(0.5f);
+    bodyOrbit->bodyTrail->setAlpha(0.5f);*/
 }
 
 void Universe::RenderUniverse()
 {
     // Trail																 
-    renderer.DrawLineStrip(orbit->bodyTrail->va, *(orbit->bodyTrail->Trail_shader), orbit->bodyTrail->trail_Transform, static_cast<unsigned int>(orbit->bodyTrail->vertices.size() / 3)); //- divide trail by size/3 since GL_LINE_STRIP count is num of vertices
+    renderer.DrawLineStrip(bodyOrbit->bodyTrail->va, *(bodyOrbit->bodyTrail->Trail_shader), bodyOrbit->bodyTrail->trail_Transform, static_cast<unsigned int>(bodyOrbit->bodyTrail->vertices.size() / 3)); //- divide trail by size/3 since GL_LINE_STRIP count is num of vertices
     // Bodies
-    renderer.DrawCircle(orbit->body->va, *(orbit->body->Circle_shader), orbit->body->body_Transform, orbit->body->NumberOfVertices);
+    renderer.DrawCircle(bodyOrbit->body->va, *(bodyOrbit->body->Circle_shader), bodyOrbit->body->body_Transform, bodyOrbit->body->NumberOfVertices);
     renderer.DrawCircle(star->va, *(star->Circle_shader), star->body_Transform, star->NumberOfVertices);
 }
 

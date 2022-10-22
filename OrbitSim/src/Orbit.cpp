@@ -173,9 +173,7 @@ void Orbit::Reset()
 
     // Energy Reinits
     PE = -1 * (G*starMass * body->mass) / r;
-    //PE *= 1e6; // micro jjoules
     KE = 0.5 * body->mass * pow(v, 2);
-    //KE *= 1e6;
     E = KE + PE;
     
 

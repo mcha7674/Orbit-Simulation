@@ -22,7 +22,7 @@ public:
 private:
 	////////// Universe OBJECTS //////////
 	Body *star;
-	Orbit *orbit;
+	Orbit *bodyOrbit;
 	////////// Universe Helper Functions //////////
 	void InitUniverse();
 	void PhysicsLoop();

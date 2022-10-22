@@ -2,7 +2,6 @@
 
 #include <GLAbstraction.h>
 #include <GLCoreUtils.h>
-#include <queue>
 
 
 class Trail
@@ -31,8 +30,7 @@ public:
     std::vector <float> vertices;
 
 private:
-    // trail trimming Time function
-    float T();
+    
     
 
 };
