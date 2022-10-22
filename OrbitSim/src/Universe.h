@@ -23,6 +23,7 @@ private:
 	////////// Universe OBJECTS //////////
 	Body *star;
 	Orbit *bodyOrbit;
+	Orbit* moonOrbit;
 	////////// Universe Helper Functions //////////
 	void InitUniverse();
 	void PhysicsLoop();

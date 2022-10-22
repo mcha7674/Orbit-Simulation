@@ -102,7 +102,6 @@ void Universe::OnEvent(Event& event)
                 mouseYpos = mme.GetY();
                 // Mouse Coordinate Transformation (update mouseXpos and mouseYpos to NDC)
                 transformMousePos();
-                std::cout << bodyOrbit->vx0 << ", " << bodyOrbit->vy0 << std::endl;
                 return true;
             });
         // Save Mouse Positions Once any mouse button is pressed
@@ -134,7 +133,6 @@ void Universe::OnEvent(Event& event)
                         bodyOrbit->vx = bodyOrbit->vx0;
                         bodyOrbit->vy = bodyOrbit->vy0;
                         bodyOrbit->v = bodyOrbit->v0;
-                        std::cout << bodyOrbit->vx0 << ", " << bodyOrbit->vy0 << std::endl;
                     }
                     
                 }
@@ -300,9 +298,11 @@ void Universe::InitUniverse()
     star = new Body(1.0f,1.0f);
     // Orbit for Earth initially
     bodyOrbit = new Orbit(star->mass, 0.1f,earthMass, 1.0f, 0.0f, 0.0f, 2*PI, 2.0f, UniverseTime, dt);
+    //moonOrbit = new Orbit(star->mass, 0.1f,earthMass, 1.0f, 0.0f, 0.0f, 2*PI, 2.0f, UniverseTime, dt);
 
     // Set Object Colors
     bodyOrbit->body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
+    //moonOrbit->body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
     bodyOrbit->bodyTrail->setColor(glm::vec4{ 0.5f,0.4f,0.4f,0.7f});
     star->setColor(1.0f, 1.0f, 0.0f, 1.0f);
 }
@@ -357,9 +357,7 @@ void Universe::ResetOrbits()
 void  Universe::PauseUniverse()
 {
     Application::Get().GetWindow().Clear(5.0f / 255.0f, 5.0f / 255.0f, 5.0f / 255.0f, 1.0f);
-    /*star->setAlpha(0.5f);
-    bodyOrbit->body->setAlpha(0.5f);
-    bodyOrbit->bodyTrail->setAlpha(0.5f);*/
+
 }
 
 void Universe::RenderUniverse()
