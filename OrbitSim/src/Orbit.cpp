@@ -23,10 +23,8 @@ Orbit::Orbit(float starMass, float bodyRadius,float bodyMass, float initx, float
     fy = FCONST(starMass, body->mass,r,B) * y;
     f = sqrt(fx * fx + fy * fy);
     // Energy Inits
-    PE = -1 * (G*starMass * body->mass) / r;
-    //PE *= 1e6; 
+    PE = ( - 1 * (G * starMass * body->mass) )/ r;
     KE = 0.5 * body->mass * pow(v, 2);
-    //KE *= 1e6;
     E = KE + PE;
 
     // calculate Theoretical Statistics (period, aphelion, perihelion)
