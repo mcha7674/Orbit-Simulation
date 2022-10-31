@@ -1,5 +1,5 @@
 #pragma once
-#include "GLAbstraction.h"
+#include <GLAbstraction.h>
 
 static float PI = 3.141592653589f;
 

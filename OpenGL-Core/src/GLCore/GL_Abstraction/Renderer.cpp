@@ -78,7 +78,7 @@ void Renderer::DrawLineStrip(const VertexArray& va, Shader& shader, Transform& t
     GLCall(glDrawArrays(GL_LINE_STRIP, 0, count));
 }
 
-/*
+
 
 void Renderer::DrawTri(const VertexArray& va, const Shader& shader)
 {
@@ -93,7 +93,7 @@ void Renderer::DrawCube_noIb(const VertexArray& va, const Shader& shader)
     va.Bind(); // dont need to bind vb since it is attached to vertex array
     GLCall(glDrawArrays(GL_TRIANGLES, 0, 36)); // 2nd arg: starting index. 3rd arg: how many vertices
 }
-*/
+
 
 
 void Renderer::Clear(bool depthBuffer)

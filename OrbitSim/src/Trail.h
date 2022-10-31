@@ -4,9 +4,8 @@
 #include <GLCoreUtils.h>
 
 
-class Trail
+struct Trail
 {
-public:
     Shader* Trail_shader;
     Trail();
     ~Trail();
@@ -28,10 +27,5 @@ public:
 
     // Store Vertices
     std::vector <float> vertices;
-
-private:
-    
-    
-
 };
 

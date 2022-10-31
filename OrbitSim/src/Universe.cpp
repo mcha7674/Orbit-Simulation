@@ -26,7 +26,6 @@ Universe::Universe()
 
 Universe::~Universe()
 {
-	delete bodyOrbit->body;
     delete star;
     delete bodyOrbit;
 }
@@ -298,11 +297,9 @@ void Universe::InitUniverse()
     star = new Body(1.0f,1.0f);
     // Orbit for Earth initially
     bodyOrbit = new Orbit(star->mass, 0.1f,earthMass, 1.0f, 0.0f, 0.0f, 2*PI, 2.0f, UniverseTime, dt);
-    //moonOrbit = new Orbit(star->mass, 0.1f,earthMass, 1.0f, 0.0f, 0.0f, 2*PI, 2.0f, UniverseTime, dt);
 
     // Set Object Colors
     bodyOrbit->body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
-    //moonOrbit->body->setColor(0.1f, 0.1f, 0.6f, 1.0f);
     bodyOrbit->bodyTrail->setColor(glm::vec4{ 0.5f,0.4f,0.4f,0.7f});
     star->setColor(1.0f, 1.0f, 0.0f, 1.0f);
 }
@@ -330,10 +327,8 @@ void Universe::PhysicsLoop()
         // update Trail in intervals
         if (i % 500 == 0)
             bodyOrbit->bodyTrail->UpdateTrail(newpos.x, newpos.y, !bodyOrbit->finishedPeriod);
-        
         // Collision Detection //
         detectCollision(bodyOrbit->r, bodyOrbit->body->radius, star->radius, bodyScaling);
-
     }
 }
 
@@ -355,10 +350,7 @@ void Universe::ResetOrbits()
 }
 
 void  Universe::PauseUniverse()
-{
-    Application::Get().GetWindow().Clear(5.0f / 255.0f, 5.0f / 255.0f, 5.0f / 255.0f, 1.0f);
-
-}
+    { Application::Get().GetWindow().Clear(5.0f / 255.0f, 5.0f / 255.0f, 5.0f / 255.0f, 1.0f); }
 
 void Universe::RenderUniverse()
 {

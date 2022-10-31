@@ -48,9 +48,9 @@ public:
 
 
 	//// draw triangles
-	//void DrawTri(const VertexArray &va, const Shader &shader);
+	void DrawTri(const VertexArray &va, const Shader &shader);
 	//// Draw Cubes
-	//void DrawCube_noIb(const VertexArray& va, const Shader& shader);
+	void DrawCube_noIb(const VertexArray& va, const Shader& shader);
 
 	// clear buffer bits
 	void Clear(bool depthBuffer = false);

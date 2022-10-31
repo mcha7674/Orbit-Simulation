@@ -1,7 +1,6 @@
 #pragma once
 
 #include <math.h>
-#include <GLCoreUtils.h>
 #include "Body.h"
 #include "Trail.h"
 
@@ -25,6 +24,7 @@ public:
     Body* body;
     Trail* bodyTrail;
     float starMass; // in Solar Mass units
+
     // Position vars (AU units)
     float x0;
     float y0;

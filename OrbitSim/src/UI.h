@@ -1,13 +1,11 @@
 #pragma once
 #include "Orbit.h"
-#include "Trail.h"
 #include <GLCore.h>
 #include <functional>
 using namespace GLCore;
 
 int scientificDivCount(float &og_num);
 int scientificMultCount(float& og_num);
-
 
 class UI
 {
@@ -52,8 +50,8 @@ struct RollingBuffer {
 	float Span;
 	ImVector<ImVec2> Data;
 	RollingBuffer() {
-		Span = 500.0f;
-		Data.reserve(2000);
+		Span = 500.0f; // 500 years of data
+		Data.reserve(5000);
 	}
 	void AddPoint(float x, float y) {
 		float xmod = fmodf(x, Span);

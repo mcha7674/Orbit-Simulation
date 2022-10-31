@@ -287,16 +287,17 @@ void UI::CrashMenu()
     } ImGui::End();
 }
 
-
 void UI::EnergyPlot(bool &pauseUniverse)
 {
     static ImPlotAxisFlags flags = ImPlotAxisFlags_NoMenus;
     static ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    
     static RollingBuffer   rdata1, rdata2;
     if (!pauseUniverse){ // Add points To Data Buffer
         rdata1.AddPoint(*UniverseTime, bodyOrbit->KE);
         rdata2.AddPoint(*UniverseTime, bodyOrbit->PE);
     }
+
     ImGui::SetNextWindowBgAlpha(0.0f);
     ImGui::SetNextWindowPos(ImVec2((work_pos.x + work_size.x) * 0.5f, (work_pos.y + work_size.y)), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
     ImGui::Begin("Plot Window", NULL, window_flags);
@@ -307,14 +308,14 @@ void UI::EnergyPlot(bool &pauseUniverse)
         //Plot Setup
         ImPlot::SetupLegend(ImPlotLocation_SouthEast);
         ImPlot::SetupAxes("Time (Years)", "Energy (Ms*AU^2*yr^-2)", flags, flags);
-        ImPlot::SetupAxisLimits(ImAxis_X1, 0, *UniverseTime*0.7, ImGuiCond_Always);
+        ImPlot::SetupAxisLimits(ImAxis_X1, 0, *UniverseTime, ImGuiCond_Always);
         // Determine realtime y limits
         if (abs(y_min) < y_max){y_min = y_max;} 
         else if (abs(y_min) > y_max){y_max = abs(y_min);}
         ImPlot::SetupAxisLimits(ImAxis_Y1, y_min, y_max);
         // Draw Scatter Plots
-        ImPlot::PlotScatter("Kinetic Energy", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size());
-        ImPlot::PlotScatter("Potential Energy", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size());
+        ImPlot::PlotScatter("Kinetic Energy", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size(), 0, 0, 2 * sizeof(float));
+        ImPlot::PlotScatter("Potential Energy", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size(), 0, 0, 2 * sizeof(float));
 
         ImPlot::EndPlot();
     } ImGui::End();
