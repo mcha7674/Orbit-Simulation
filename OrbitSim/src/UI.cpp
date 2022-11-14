@@ -314,8 +314,8 @@ void UI::EnergyPlot(bool &pauseUniverse)
         else if (abs(y_min) > y_max){y_max = abs(y_min);}
         ImPlot::SetupAxisLimits(ImAxis_Y1, y_min, y_max);
         // Draw Scatter Plots
-        ImPlot::PlotScatter("Kinetic Energy", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size(), 0, 0, 2 * sizeof(float));
-        ImPlot::PlotScatter("Potential Energy", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size(), 0, 0, 2 * sizeof(float));
+        ImPlot::PlotScatter("Kinetic Energy", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size(), 0, 0, 3 * sizeof(float));
+        ImPlot::PlotScatter("Potential Energy", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size(), 0, 0, 3 * sizeof(float));
 
         ImPlot::EndPlot();
     } ImGui::End();

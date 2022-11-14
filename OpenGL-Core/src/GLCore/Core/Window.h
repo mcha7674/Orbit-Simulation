@@ -28,10 +28,7 @@ namespace GLCore {
 	{
 	public:
 		/* EVENT CALLBACK FUNCTION
-		Function That returns void and takes in an event reference 
-		as its parameter.
-		-- When Events are created in WindowsWIndow, they are dispactched
-		to this function
+		
 		*/
 		using EventCallbackFn = std::function<void(Event&)>;
 

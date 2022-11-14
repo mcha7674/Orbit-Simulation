@@ -55,6 +55,9 @@
       <HashCode>AIAAAAAACAABAAAAAAABAAABAAQAAgAgAAAAAAAIAAA=</HashCode>
       <FileName>src\Body.h</FileName>
     </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="body_Transform" />
+    </ShowAsAssociation>
   </Struct>
   <Struct Name="Circle" Collapsed="true">
     <Position X="8.75" Y="0.5" Width="1.5" />
@@ -64,10 +67,17 @@
     </TypeIdentifier>
   </Struct>
   <Struct Name="RollingBuffer" Collapsed="true">
-    <Position X="2.75" Y="3.75" Width="1.5" />
+    <Position X="1" Y="3" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAQBAAAAAAAAAAAAAAAABAAAAAgAAIAAAA=</HashCode>
       <FileName>src\UI.h</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="Transform" Collapsed="true">
+    <Position X="12.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAIAQCAAgAAAACAAAAAAAAAAA=</HashCode>
+      <FileName>C:\dev\Orbit-Simulation\OpenGL-Core\src\GLCore\GL_Abstraction\Transform.h</FileName>
     </TypeIdentifier>
   </Struct>
   <Font Name="Segoe UI" Size="9" />
