@@ -2,7 +2,7 @@
 Orbit Simulation project using OpenGL, GLFW, GLAD, and Imgui in C++ for the purpose of visualizing the 2-Body orbit and analyze how different physical parameters interact.
 
 <p align= "center">
-<img src="OrbitAnimation2.gif" width="800" height="500" />
+<img src="OrbitAnimation2.gif" width="900" height="450" />
 </p>
 
 ## Building Project
